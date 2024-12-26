@@ -1,0 +1,50 @@
+# dataset and model name
+data_dir: "/data0/datasets/ILSVRC2012"
+dataset: imagenet
+num_classes: 1000
+img_size: 224
+
+# data augmentation
+mean:
+    - 0.485
+    - 0.456
+    - 0.406
+std:
+    - 0.229
+    - 0.224
+    - 0.225
+crop_pct: 1.0
+scale:
+    - 1.0
+    - 1.0
+interpolation: bicubic
+train_interpolation: bicubic
+aa: rand-m9-mstd0.5-inc1
+mixup: 0.8
+mixup_off_epoch: 0
+mixup_prob: 1.0
+mixup_mode: batch
+mixup_switch_prob: 0.5
+cutmix: 1.0
+reprob: 0.25
+remode: const
+
+# model structure
+model: "spikformer_imgnet"
+step: 4
+patch_size: 16
+in_channels: 3
+embed_dim: 512
+num_heads: 8
+mlp_ratio: 4
+attn_scale: 0.125
+mlp_drop: 0.0
+attn_drop: 0.0
+depths: 8
+
+# node
+tau: 2.0
+threshold: 1.0
+act_function: SigmoidGrad
+node_type: LIFNode
+alpha: 4.0

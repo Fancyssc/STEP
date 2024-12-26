@@ -1,0 +1,43 @@
+# default training hyperparam
+## for cifar10/100
+amp: True
+batch_size: 128
+val_batch_size: 128
+lr: 5e-4
+min_lr: 1e-5
+sched: cosine
+weight_decay: 6e-2
+cooldown_epochs: 10
+warmup_epochs: 20
+warmup_lr: 0.00001
+opt: adamw
+smoothing: 0.1
+workers: 16
+seed: 42
+
+##for imagenet
+#amp: True
+#batch_size: 48
+#val_batch_size: 48
+#lr: 5e-4
+#min_lr: 1e-5
+#sched: cosine
+#weight_decay: 5e-2
+#epochs: 300
+#cooldown_epochs: 10
+#warmup_epochs: 20
+#warmup_lr: 0.000001
+#opt: adamw
+#smoothing: 0.1
+#workers: 8
+#seed: 42
+
+
+
+## you may change the params below
+# change your device here
+device: 0
+# display interval in terminal
+log_interval: 200
+# log dir
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/"
