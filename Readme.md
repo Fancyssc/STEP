@@ -16,19 +16,14 @@ More models are to be implemented soon...
 
 ### Experiment Results
 #### CIFAR
-| Group  |   Model    |                             Node                              | Dataset  | Step | Epoch | Result(Acc@1) |  supp.   |
-|:------:|:----------:|:-------------------------------------------------------------:|:--------:|:-------:|:-----:|:-------------:|:--------:|
-| Group0 | Spikformer |                               -                               | CIFAR10  | 4 |  300  |     95.2      |  paper   |
-|        | Spikformer |                               -                               | CIFAR10  | 4 |  400  |     95.5      |  paper   |
-| Group1 | Spikformer |       LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))        | CIFAR10  | 4 |  300  |     94.4      |    -     |
-|        | Spikformer |       LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))        | CIFAR10  | 4 |  400  |     95.0      |    -     |
-| Group2 | Spikformer | SpikingJelly_LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.)) | CIFAR10  | 4 |  300  |     94.2      |    -     |
-|        | Spikformer | SpikingJelly_LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.)) | CIFAR10  | 4 |  400  |     94.7      |    -     |
-| Group3 | Spikformer | SpikingJelly_LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.)) | CIFAR10  | 4 |  300  |     95.0      | official |
-|        | Spikformer | SpikingJelly_LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.)) | CIFAR10  | 4 |  400  |     95.2      | official |
-| |            |          | |  |       |               |    -     |
-|  |    SDT     |       LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))        | CIFAR10  | 4 |  300  | 95.41(-0.19)  |    -     |
-|  |  QKFormer  |       LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))        | CIFAR10  | 4 |  400  | 96.08(-0.10)  |    -     |
+|   Model    |                             Node                              | Dataset  | Step | Epoch | Result(Acc@1) |  supp.   |
+|:----------:|:-------------------------------------------------------------:|:--------:|:-------:|:-----:|:-------------:|:--------:|
+| Spikformer |       LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))        | CIFAR10  | 4 |  300  | 94.47(-0.72)  |    -     |
+| Spikformer |       LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))        | CIFAR10  | 4 |  400  | 95.03(-0.48)  |    -     |
+||||||
+|    SDT     |       LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))        | CIFAR10  | 4 |  300  | 95.26(-0.34)  |    -     |
+||||||
+|  QKFormer  |       LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))        | CIFAR10  | 4 |  400  |  96.5(+0.32)  |    -     |
 
 #### ImageNet-1K
 to be updated

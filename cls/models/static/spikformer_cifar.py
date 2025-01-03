@@ -98,11 +98,11 @@ class SPS(BaseModule):
 
 
 class SSA(BaseModule):
-    def __init__(self,embed_dim, step=4,encode_type='direct',num_heads=12,scale=0.125,attn_drop=0.,node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.0,layer_by_layer=True):
+    def __init__(self,embed_dim, step=4,encode_type='direct',num_heads=12,attn_scale=0.125,attn_drop=0.,node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.0,layer_by_layer=True):
         super().__init__(step=step, encode_type=encode_type,layer_by_layer=layer_by_layer)
         self.embed_dim = embed_dim
         self.num_heads = num_heads
-        self.scale = scale
+        self.scale = attn_scale
         self.T = step
         self.q_linear = nn.Linear(embed_dim, embed_dim)
         self.q_bn = nn.BatchNorm1d(embed_dim)
@@ -180,12 +180,14 @@ class MLP(BaseModule):
 
 # Spikformer block
 class Block(nn.Module):
-    def __init__(self, embed_dim=384, num_heads=12, step=4,mlp_ratio=4. ,attn_scale=0., attn_drop=0.,mlp_drop=0.,node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.,layer_by_layer=True):
+    def __init__(self, embed_dim=384, num_heads=12, step=4,mlp_ratio=4. ,attn_scale=0.125, attn_drop=0.,mlp_drop=0.,node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.,layer_by_layer=True):
         super().__init__()
 
-        self.attn = SSA(embed_dim, step=step, num_heads=num_heads,attn_drop=attn_drop, scale=attn_scale,node=node,tau=tau,act_func=act_func,threshold=threshold,alpha=alpha,layer_by_layer=layer_by_layer)
+        self.attn = SSA(embed_dim, step=step, num_heads=num_heads,attn_drop=attn_drop, attn_scale=attn_scale,
+                        node=node,tau=tau,act_func=act_func,threshold=threshold,alpha=alpha,layer_by_layer=layer_by_layer)
         # self.layernorm1 = nn.LayerNorm(embed_dim)
-        self.mlp = MLP(step=step,in_features=embed_dim,mlp_ratio=mlp_ratio,out_features=embed_dim,mlp_drop=mlp_drop,node=node,tau=tau,act_func=act_func,threshold=threshold,alpha=alpha,layer_by_layer=layer_by_layer)
+        self.mlp = MLP(step=step,in_features=embed_dim,mlp_ratio=mlp_ratio,out_features=embed_dim,mlp_drop=mlp_drop,
+                       node=node,tau=tau,act_func=act_func,threshold=threshold,alpha=alpha,layer_by_layer=layer_by_layer)
         # self.layernorm2 = nn.LayerNorm(embed_dim)
 
     def forward(self, x):
@@ -197,7 +199,7 @@ class Block(nn.Module):
 class Spikformer(BaseModule):
     def __init__(self,
                  step=4, img_size=32, patch_size=4, in_channels=3, num_classes=10,attn_scale=0.125,
-                 embed_dim=384, num_heads=12, mlp_ratio=4, scale=0.125, mlp_drop=0., attn_drop=0.,
+                 embed_dim=384, num_heads=12, mlp_ratio=4, mlp_drop=0., attn_drop=0.,
                  depths=4, node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.,layer_by_layer=True
                  ):
         super().__init__(step=step, encode_type='direct',layer_by_layer=layer_by_layer)
@@ -279,7 +281,7 @@ def spikformer_cifar(pretrained=False,**kwargs):
         embed_dim=kwargs.get('embed_dim', 384),
         num_heads=kwargs.get('num_heads', 12),
         mlp_ratio=kwargs.get('mlp_ratio', 4),
-        scale=kwargs.get('attn_scale', 0.125),
+        attn_scale=kwargs.get('attn_scale', 0.125),
         mlp_drop=kwargs.get('mlp_drop', 0.0),
         attn_drop=kwargs.get('attn_drop', 0.0),
         depths=kwargs.get('depths', 4),

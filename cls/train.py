@@ -168,6 +168,11 @@ parser.add_argument('-b', '--batch-size', type=int, default=32, metavar='N',
                     help='input batch size for training (default: 32)')
 parser.add_argument('-vb', '--val-batch-size', type=int, default=16, metavar='N',
                     help='input val batch size for training (default: 32)')
+#for TIM
+parser.add_argument('--TIM-alpha', type=float, default=0.5, metavar='N',
+                    help='TIM alpha for Temporal Interaction Module(TIM)')
+
+
 # parser.add_argument('-vb', '--validation-batch-size-multiplier', type=int, default=1, metavar='N',
 #                     help='ratio of validation batch size to training batch size (default: 1)')
 
@@ -442,7 +447,8 @@ def main():
     create_model_keys = [
         'model', 'step', 'img_size', 'patch_size', 'in_channels',
         'num_classes', 'embed_dim', 'num_heads', 'mlp_ratio', 'attn_scale',
-        'mlp_drop', 'attn_drop', 'depths', 'tau', 'threshold', 'node_type', 'act_func','alpha'
+        'mlp_drop', 'attn_drop', 'depths', 'tau', 'threshold', 'node_type', 'act_func','alpha',
+        'TIM_alpha'
     ]
     create_model_args = {key: all_args[key] for key in create_model_keys if key in all_args}
     create_model_args['node'] = node_type # node type
@@ -722,7 +728,7 @@ def main():
 
             if output_dir is not None:
                 update_summary(
-                    epoch, train_metrics, eval_metrics, os.path.join(output_dir, 'spikformer_braincog.csv'),
+                    epoch, train_metrics, eval_metrics, os.path.join(output_dir, 'log.csv'),
                     write_header=best_metric is None, log_wandb=args.log_wandb and has_wandb)
 
             if saver is not None:
