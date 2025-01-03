@@ -15,15 +15,19 @@ More models are to be implemented soon...
 
 
 ### Experiment Results
+The default neuron node used in spiking transformers are `LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))` and the models are in the mode of `layer by layer`. If any 
+special conditions are considered, it will be noted in the supp. of the table.
+
+Other hyper-param setting are following the original paper.
 #### CIFAR
-|   Model    |                             Node                              | Dataset  | Step | Epoch | Result(Acc@1) |  supp.   |
-|:----------:|:-------------------------------------------------------------:|:--------:|:-------:|:-----:|:-------------:|:--------:|
-| Spikformer |       LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))        | CIFAR10  | 4 |  300  | 94.47(-0.72)  |    -     |
-| Spikformer |       LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))        | CIFAR10  | 4 |  400  | 95.03(-0.48)  |    -     |
-||||||
-|    SDT     |       LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))        | CIFAR10  | 4 |  300  | 95.26(-0.34)  |    -     |
-||||||
-|  QKFormer  |       LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))        | CIFAR10  | 4 |  400  |  96.5(+0.32)  |    -     |
+|   Model    | Batch-Size | Dataset  | Step | Epoch | Result(Acc@1) |  supp.   |
+|:----------:|:----------:|:--------:|:-------:|:-----:|:-------------:|:--------:|
+| Spikformer |    128     | CIFAR10  | 4 |  300  | 94.47(-0.72)  |    -     |
+| Spikformer |    128     | CIFAR10  | 4 |  400  | 95.03(-0.48)  |    -     |
+||            ||||
+|    SDT     |     64     | CIFAR10  | 4 |  300  | 95.26(-0.34)  |    -     |
+||            ||||
+|  QKFormer  |     64     | CIFAR10  | 4 |  400  |  96.5(+0.32)  |    -     |
 
 #### ImageNet-1K
 to be updated
