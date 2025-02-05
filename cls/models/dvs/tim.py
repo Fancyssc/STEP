@@ -23,8 +23,8 @@ class MLP(BaseModule):
         self.fc1_bn = nn.BatchNorm1d(self.hidden_features)
         self.fc1_lif = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer)
 
-        self.fc2_conv = nn.Conv1d(self.hidden_features, out_features, kernel_size=1, stride=1)
-        self.fc2_bn = nn.BatchNorm1d(out_features)
+        self.fc2_conv = nn.Conv1d(self.hidden_features, self.out_features, kernel_size=1, stride=1)
+        self.fc2_bn = nn.BatchNorm1d(self.out_features)
         self.fc2_lif = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer)
 
         self.c_hidden = self.hidden_features
@@ -33,21 +33,21 @@ class MLP(BaseModule):
     def forward(self, x):
         self.reset()
 
-        T, B, C, N = x.shape
+        TB, C, N = x.shape
 
-        x = self.fc1_conv(x.flatten(0, 1))
-        x = self.fc1_bn(x).reshape(T, B, self.c_hidden, N).contiguous()  # T B C N
-        x = self.fc1_lif(x.flatten(0, 1)).reshape(T, B, self.c_hidden, N).contiguous()
+        x = self.fc1_conv(x)
+        x = self.fc1_bn(x)
+        x = self.fc1_lif(x)
 
-        x = self.fc2_conv(x.flatten(0, 1))
-        x = self.fc2_bn(x).reshape(T, B, C, N).contiguous()
-        x = self.fc2_lif(x.flatten(0, 1)).reshape(T, B, C, N).contiguous()
+        x = self.fc2_conv(x)
+        x = self.fc2_bn(x)
+        x = self.fc2_lif(x)
 
-        return x
+        return x  # TB C N
 
 
 class TIM(BaseModule):
-    def __init__(self,  in_channels, encode_type='direct', TIM_alpha=0.5,
+    def __init__(self,  in_channels, encode_type='direct', tim_alpha=0.5,
                     node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.,):
         super().__init__(step=1, encode_type=encode_type)
 
@@ -58,7 +58,7 @@ class TIM(BaseModule):
         self.in_lif = node(step=1,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=False)
         self.out_lif =node(step=1,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=False)
 
-        self.tim_alpha = TIM_alpha
+        self.tim_alpha = tim_alpha
 
     # input [T, B, H, N, C/H]
     def forward(self, x):
@@ -90,8 +90,8 @@ class TIM(BaseModule):
         return output  # T B H, N, C/H
 
 class SSA(BaseModule):
-    def __init__(self, embed_dim, step=10, encode_type='direct', num_heads=16, TIM_alpha=0.5,attn_scale=0.25,
-                 node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.0,layer_by_layer=True, img_size=128, patch_size=16):
+    def __init__(self, embed_dim, step=10, encode_type='direct', num_heads=16, tim_alpha=0.5,attn_scale=0.25,
+                 node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.0,layer_by_layer=True, event_size=64, patch_size=16):
         super().__init__(step=step, encode_type=encode_type,layer_by_layer=layer_by_layer)
         assert embed_dim % num_heads == 0, f"dim {embed_dim} should be divided by num_heads {num_heads}."
         self.embed_dim = embed_dim
@@ -122,7 +122,7 @@ class SSA(BaseModule):
         self.proj_bn = nn.BatchNorm1d(embed_dim)
         self.proj_lif = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer)
 
-        self.TIM = TIM(in_channels= (img_size//patch_size)**2, TIM_alpha=TIM_alpha)
+        self.TIM = TIM(in_channels= (event_size//patch_size)**2, tim_alpha=tim_alpha)
 
     def forward(self, x):
         self.reset()
@@ -146,7 +146,7 @@ class SSA(BaseModule):
         v_conv_out = self.v_lif(v_conv_out).transpose(-2, -1)
         v = v_conv_out.reshape(self.step, -1, N, self.num_heads, C // self.num_heads).permute(0, 1, 3, 2, 4).contiguous()
 
-        # TIM
+        # tim
         q = self.TIM(q)
 
         # SSA
@@ -161,12 +161,12 @@ class SSA(BaseModule):
 
 
 class Block(nn.Module):
-    def __init__(self, embed_dim, num_heads=16, step=10, TIM_alpha=0.5, mlp_ratio=4., attn_scale = 0.25, img_size=128, patch_size=16,
+    def __init__(self, embed_dim, num_heads=16, step=10, tim_alpha=0.5, mlp_ratio=4., attn_scale = 0.25, event_size=64, patch_size=16,
                   norm_layer=nn.LayerNorm, node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.0,layer_by_layer=True):
         super().__init__()
         self.norm1 = norm_layer(embed_dim)
 
-        self.attn = SSA(embed_dim, step=step, TIM_alpha=TIM_alpha, num_heads=num_heads, attn_scale=attn_scale,img_size=img_size,patch_size=patch_size,
+        self.attn = SSA(embed_dim, step=step, tim_alpha=tim_alpha, num_heads=num_heads, attn_scale=attn_scale,event_size=64,patch_size=patch_size,
                         node=node,tau=tau,threshold=threshold,act_func=act_func, alpha=alpha,layer_by_layer=layer_by_layer)
         self.norm2 = norm_layer(embed_dim)
         self.mlp = MLP(in_features=embed_dim, step=step,  mlp_ratio=mlp_ratio,
@@ -179,17 +179,16 @@ class Block(nn.Module):
 
 
 class SPS(BaseModule):
-    def __init__(self, step=10, encode_type='direct', img_size_h=128, img_size_w=128, patch_size=16, in_channels=2,
+    def __init__(self, step=10, encode_type='direct', event_size=64, patch_size=16, in_channels=2,
                  embed_dim=256,  node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.0,layer_by_layer=True):
         super().__init__(step=step, encode_type=encode_type,layer_by_layer=layer_by_layer)
-        self.image_size = [img_size_h, img_size_w]
+        self.event_size = [event_size, event_size]
 
         patch_size = to_2tuple(patch_size)
         self.patch_size = patch_size
         self.C = in_channels
-        self.H, self.W = self.image_size[0] // patch_size[0], self.image_size[1] // patch_size[1]
+        self.H, self.W = self.event_size[0] // patch_size[0], self.event_size[1] // patch_size[1]
         self.num_patches = self.H * self.W
-
 
         self.proj_conv = nn.Conv2d(in_channels, embed_dim // 8, kernel_size=3, stride=1, padding=1, bias=False)
         self.proj_bn = nn.BatchNorm2d(embed_dim // 8)
@@ -254,26 +253,25 @@ class SPS(BaseModule):
 
 
 class Spikformer(nn.Module):
-    def __init__(self, step=10, img_size=128, patch_size=16, in_channels=2, num_classes=10,attn_scale=0.25,
-                 embed_dim=256, num_heads=16, mlp_ratio=4, depths=4,TIM_alpha=0.5,
+    def __init__(self, step=10, event_size=64, patch_size=16, in_channels=2, num_classes=10,attn_scale=0.25,
+                 embed_dim=256, num_heads=16, mlp_ratio=4, depths=4,tim_alpha=0.5,
                  node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.,layer_by_layer=True
                  ):
         super().__init__()
-        self.T = step  # time step
+        self.step = step  # time step
         self.num_classes = num_classes
         self.depths = depths
 
         # dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depths)]  # stochastic depth decay rule
 
         patch_embed = SPS(step=step,
-                          img_size_h=img_size,
-                          img_size_w=img_size,
+                          event_size=event_size,
                           patch_size=patch_size,
                           in_channels=in_channels,
                           embed_dim=embed_dim,
                           node=node,tau=tau,threshold=threshold,act_func=act_func, alpha=alpha,layer_by_layer=layer_by_layer)
 
-        block = nn.ModuleList([Block(step=step, TIM_alpha=TIM_alpha, img_size=img_size,patch_size=patch_size,
+        block = nn.ModuleList([Block(step=step, tim_alpha=tim_alpha, event_size=event_size,patch_size=patch_size,
                                      embed_dim=embed_dim, num_heads=num_heads, mlp_ratio=mlp_ratio,attn_scale=attn_scale,
                                      node=node,tau=tau,threshold=threshold,act_func=act_func, alpha=alpha,layer_by_layer=layer_by_layer)
 
@@ -311,7 +309,10 @@ class Spikformer(nn.Module):
 
         x = patch_embed(x)
         for blk in block:
-            x = blk(x)
+            x = blk(x) # TB C N
+
+        _, C, N = x.shape
+        x = x.reshape(self.step, -1, C, N ) # T B C N
         return x.mean(3)
 
     def forward(self, x):
@@ -325,10 +326,10 @@ class Spikformer(nn.Module):
 # Hyperparams could be adjust here
 
 @register_model
-def spikformer_dvs(pretrained=False, **kwargs):
+def tim(pretrained=False, **kwargs):
     model = Spikformer(
         step=kwargs.get('step', 4),
-        img_size=kwargs.get('img_size', 128),
+        event_size=kwargs.get('event_size',64),
         patch_size=kwargs.get('patch_size', 16),
         in_channels=kwargs.get('in_channels', 2),
         num_classes=kwargs.get('num_classes', 10),
@@ -336,13 +337,13 @@ def spikformer_dvs(pretrained=False, **kwargs):
         num_heads=kwargs.get('num_heads', 16),
         mlp_ratio=kwargs.get('mlp_ratio', 4),
         attn_scale=kwargs.get('attn_scale', 0.25),
-        depths=kwargs.get('depths', 4),
+        depths=kwargs.get('depths', 2),
         tau=kwargs.get('tau', 2.0),
         threshold=kwargs.get('threshold', 1.0),
         node=kwargs.get('node', LIFNode),
         act_func=kwargs.get('act_func', SigmoidGrad),
         alpha=kwargs.get('alpha', 4.0),
-        TIM_alpha = kwargs.get('TIM_alpha', 0.5)
+        tim_alpha = kwargs.get('tim_alpha', 0.5)
         )
     model.default_cfg = _cfg()
     return model

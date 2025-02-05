@@ -34,7 +34,7 @@ to be updated
 
 ### How Can You Run
 #### Code Environment
-1. The path configuration for your code repository should be as follows.
+1. **The path configuration for your code repository should be as follows.**
 ```angular2html
 .
 ├── Readme.md
@@ -62,22 +62,32 @@ to be updated
         └── node.py
 ```
 
-2. Install the required packages.
+2. **Install the required packages.**
 ```angular2html
     conda create -n [your_env_name] python=3.8 -y
     conda activate [your_env_name]
     pip install -r requirements.txt
 ```
 
-3. Configure your model
+3. **Configure your model**
     To configure your model and place it under ```models/static``` or ```model/dvs``` directory, along with registering the model using timm‘s register function.
     
     To write config files and place them under ```configs/[your_model]``` directory, the format should **strictly** flollow the format of the existing config files. We highly recommend this method even you can use only one ```.yml``` file to config the model. The reason for separating model configuration and training hyperparameters is to facilitate debugging and make the tuning process easier.
     
     Eventually, to import the registered model in ```train.py```.
 
-4. Run the training script
+
+4. **Run the training script**
+Since dynamic and static datasets typically use different loading methods and data augmentation techniques, most models employ two separate scripts with corresponding augmentation strategies. Therefore, we also divide the scripts into two here.
+
+**For Static Datasets:**
 ```angular2html
     python train.py --model-config configs/[your_model]/[your_dataset].yml --train-config configs/[your_model]/train.yml
 ```
 
+
+
+**For DVS Datasets:**
+```angular2html
+    python train_dvs.py --model-config configs/[your_model]/[your_dataset].yml --train-config configs/[your_model]/train.yml
+```

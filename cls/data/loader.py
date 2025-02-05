@@ -12,7 +12,7 @@ from typing import Callable
 import torch.utils.data
 import numpy as np
 
-from data.transforms_factory import create_transform
+from .transforms_factory import create_transform
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from timm.data.distributed_sampler import OrderedDistributedSampler, RepeatAugSampler
 from timm.data.random_erasing import RandomErasing

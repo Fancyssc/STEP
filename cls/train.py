@@ -1,20 +1,3 @@
-#!/usr/bin/env python3
-# This is a slightly modified version of timm's training script
-""" Spikformer ImageNet Testing Script
-
-This is intended to be a lean and easily modifiable ImageNet training script that reproduces ImageNet
-training results with some of the latest networks and training techniques. It favours canonical PyTorch
-and standard Python style over trying to be able to 'do it all.' That said, it offers quite a few speed
-and training result improvements over the usual PyTorch example scripts. Repurpose as you see fit.
-
-This script was started from an early version of the PyTorch ImageNet example
-(https://github.com/pytorch/examples/tree/master/imagenet)
-
-NVIDIA CUDA specific speedups adopted from NVIDIA Apex examples
-(https://github.com/NVIDIA/apex/tree/master/examples/imagenet)
-
-Hacked together by / Copyright 2020 Ross Wightman (https://github.com/rwightman)
-"""
 import argparse
 import time
 
@@ -23,10 +6,12 @@ import yaml
 import logging
 import os
 
+from huggingface_hub import dataset_info
 from spikingjelly.clock_driven.examples.PPO import device
 
 from utils.node import *
 
+from data.dvs_dataset import *
 from collections import OrderedDict
 from contextlib import suppress
 from datetime import datetime
@@ -54,6 +39,7 @@ from braincog.base.strategy.surrogate import *
 
 #import model here
 from models.static import spikformer_cifar, qkformer_cifar, sdt_cifar
+from models.dvs import tim
 # from models.static import spikformer_img
 # from official import spikformer_official
 
@@ -97,7 +83,7 @@ parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 # Model detail
 parser.add_argument('--model', default='spikformer', type=str, metavar='MODEL',
                     help='Name of model to train (default: "countception"')
-parser.add_argument('--step', '--time-step', type=int, default=4, metavar='time',
+parser.add_argument('--step', type=int, default=4, metavar='time',
                     help='simulation time step of spiking neuron (default: 4)')
 parser.add_argument('--depths', type=int, default=4, metavar='layer',
                     help='model depths (default: 4)')
@@ -168,9 +154,6 @@ parser.add_argument('-b', '--batch-size', type=int, default=32, metavar='N',
                     help='input batch size for training (default: 32)')
 parser.add_argument('-vb', '--val-batch-size', type=int, default=16, metavar='N',
                     help='input val batch size for training (default: 32)')
-#for TIM
-parser.add_argument('--TIM-alpha', type=float, default=0.5, metavar='N',
-                    help='TIM alpha for Temporal Interaction Module(TIM)')
 
 
 # parser.add_argument('-vb', '--validation-batch-size-multiplier', type=int, default=1, metavar='N',
@@ -228,7 +211,6 @@ parser.add_argument('--patience-epochs', type=int, default=10, metavar='N',
 parser.add_argument('--decay-rate', '--dr', type=float, default=0.1, metavar='RATE',
                     help='LR decay rate (default: 0.1)')
 
-# Augmentation & regularization parameters
 parser.add_argument('--no-aug', action='store_true', default=False,
                     help='Disable all training augmentation, override other train aug args')
 parser.add_argument('--scale', type=float, nargs='+', default=[0.08, 1.0], metavar='PCT',
@@ -255,6 +237,7 @@ parser.add_argument('--recount', type=int, default=1,
                     help='Random erase count (default: 1)')
 parser.add_argument('--resplit', action='store_true', default=False,
                     help='Do not random erase first (clean) augmentation split')
+parser.add_argument('--event-mix', action='store_true', help='EventMix for event data (default: False)')
 parser.add_argument('--mixup', type=float, default=0.0,
                     help='mixup alpha, mixup enabled if > 0. (default: 0.)')
 parser.add_argument('--cutmix', type=float, default=0.0,
@@ -379,13 +362,6 @@ def _parse_args():
 def main():
     setup_default_logging()
     args, args_text = _parse_args()
-    # if torch.cuda.is_available() and 'cuda' in args.device:
-    #     device = torch.device(args.device)
-    # else:
-    #     device = torch.device('cpu')
-    # args.device = device # 方便后续使用
-    # _logger.info(f'Training on device:{device}')
-
 
     if args.log_wandb:
         if has_wandb:
@@ -448,7 +424,6 @@ def main():
         'model', 'step', 'img_size', 'patch_size', 'in_channels',
         'num_classes', 'embed_dim', 'num_heads', 'mlp_ratio', 'attn_scale',
         'mlp_drop', 'attn_drop', 'depths', 'tau', 'threshold', 'node_type', 'act_func','alpha',
-        'TIM_alpha'
     ]
     create_model_args = {key: all_args[key] for key in create_model_keys if key in all_args}
     create_model_args['node'] = node_type # node type
@@ -577,67 +552,65 @@ def main():
     if args.local_rank == 0:
         _logger.info('Scheduled epochs: {}'.format(num_epochs))
 
-    # create the train and eval datasets
-    dataset_train = create_dataset(
-        args.dataset,
-        root=args.data_dir, split=args.train_split, is_training=True,
-        batch_size=args.batch_size, repeats=args.epoch_repeats)
+        dataset_train = create_dataset(
+            args.dataset,
+            root=args.data_dir, split=args.train_split, is_training=True,
+            batch_size=args.batch_size, repeats=args.epoch_repeats)
 
-    dataset_eval = create_dataset(
-        args.dataset, root=args.data_dir, split=args.val_split, is_training=False, batch_size=args.batch_size)
-
+        dataset_eval = create_dataset(
+            args.dataset, root=args.data_dir, split=args.val_split, is_training=False, batch_size=args.batch_size)
 
 
-    # setup mixup / cutmix
-    collate_fn = None
-    mixup_fn = None
-    mixup_active = args.mixup > 0 or args.cutmix > 0. or args.cutmix_minmax is not None
-    if mixup_active:
-        mixup_args = dict(
-            mixup_alpha=args.mixup, cutmix_alpha=args.cutmix, cutmix_minmax=args.cutmix_minmax,
-            prob=args.mixup_prob, switch_prob=args.mixup_switch_prob, mode=args.mixup_mode,
-            label_smoothing=args.smoothing, num_classes=args.num_classes)
-        if args.prefetcher:
-            assert not num_aug_splits  # collate conflict (need to support deinterleaving in collate mixup)
-            collate_fn = FastCollateMixup(**mixup_args)
-        else:
-            mixup_fn = Mixup(**mixup_args)
+        # setup mixup / cutmix
+        collate_fn = None
+        mixup_fn = None
+        mixup_active = args.mixup > 0 or args.cutmix > 0. or args.cutmix_minmax is not None
+        if mixup_active:
+            mixup_args = dict(
+                mixup_alpha=args.mixup, cutmix_alpha=args.cutmix, cutmix_minmax=args.cutmix_minmax,
+                prob=args.mixup_prob, switch_prob=args.mixup_switch_prob, mode=args.mixup_mode,
+                label_smoothing=args.smoothing, num_classes=args.num_classes)
+            if args.prefetcher:
+                assert not num_aug_splits  # collate conflict (need to support deinterleaving in collate mixup)
+                collate_fn = FastCollateMixup(**mixup_args)
+            else:
+                mixup_fn = Mixup(**mixup_args)
 
-    # wrap dataset in AugMix helper
-    if num_aug_splits > 1:
-        dataset_train = AugMixDataset(dataset_train, num_splits=num_aug_splits)
+        # wrap dataset in AugMix helper
+        if num_aug_splits > 1:
+            dataset_train = AugMixDataset(dataset_train, num_splits=num_aug_splits)
 
-    # create data loaders w/ augmentation pipeiine
-    train_interpolation = args.train_interpolation
-    if args.no_aug or not train_interpolation:
-        train_interpolation = data_config['interpolation']
-    loader_train = create_loader(
-        dataset_train,
-        input_size=data_config['input_size'],
-        batch_size=args.batch_size,
-        is_training=True,
-        use_prefetcher=args.prefetcher,
-        no_aug=args.no_aug,
-        re_prob=args.reprob,
-        re_mode=args.remode,
-        re_count=args.recount,
-        re_split=args.resplit,
-        scale=args.scale,
-        ratio=args.ratio,
-        hflip=args.hflip,
-        vflip=args.vflip,
-        color_jitter=args.color_jitter,
-        auto_augment=args.aa,
-        num_aug_splits=num_aug_splits,
-        interpolation=train_interpolation,
-        mean=data_config['mean'],
-        std=data_config['std'],
-        num_workers=args.workers,
-        distributed=args.distributed,
-        collate_fn=collate_fn,
-        pin_memory=args.pin_mem,
-        use_multi_epochs_loader=args.use_multi_epochs_loader
-    )
+        # create data loaders w/ augmentation pipeiine
+        train_interpolation = args.train_interpolation
+        if args.no_aug or not train_interpolation:
+            train_interpolation = data_config['interpolation']
+        loader_train = create_loader(
+            dataset_train,
+            input_size=data_config['input_size'],
+            batch_size=args.batch_size,
+            is_training=True,
+            use_prefetcher=args.prefetcher,
+            no_aug=args.no_aug,
+            re_prob=args.reprob,
+            re_mode=args.remode,
+            re_count=args.recount,
+            re_split=args.resplit,
+            scale=args.scale,
+            ratio=args.ratio,
+            hflip=args.hflip,
+            vflip=args.vflip,
+            color_jitter=args.color_jitter,
+            auto_augment=args.aa,
+            num_aug_splits=num_aug_splits,
+            interpolation=train_interpolation,
+            mean=data_config['mean'],
+            std=data_config['std'],
+            num_workers=args.workers,
+            distributed=args.distributed,
+            collate_fn=collate_fn,
+            pin_memory=args.pin_mem,
+            use_multi_epochs_loader=args.use_multi_epochs_loader
+        )
 
     loader_eval = create_loader(
         dataset_eval,
