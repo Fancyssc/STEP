@@ -1,26 +1,27 @@
 # Spiking Transformer Benchmark
-English | [简体中文](Readme_CN.md)
+[English](Readme.md)|简体中文
 
-This is based on the Spiking Transformer framework developed by [BrainCog](https://github.com/BrainCog-X/Brain-Cog). The framework integrates most of the existing open-source Spiking Transformers and their evaluation results on the corresponding datasets.
-Our code repository will remain updated. If you have any questions, please feel free to contact us.
+该项目基于由 [BrainCog](https://github.com/BrainCog-X/Brain-Cog) 开发的 Spiking Transformer 框架。该框架集成了目前大多数开源的 Spiking Transformer 模型及其在相应数据集上的评估结果。
 
+我们的代码仓库将持续更新。如果您有任何疑问，请随时联系我们。
 
-## Classification
+## 图片分类
 
-### Implemented & To-implement Models
+### 模型 & 待测模型
 
 |   Model    |                    Pub. Info.                    |   Status    |              Model               |                                                              Pub. Info.                                                              |   Status    |
 |:----------:|:------------------------------------------------:|:-----------:|:--------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------:|:-----------:|
 | Spikformer |  [ICLR 2023](https://arxiv.org/abs/2209.15425)   |   testing   | Spike-driven Transformer(SDT v1) | [NeurIPS 2023](https://proceedings.neurips.cc/paper_files/paper/2023/hash/ca0f5358dbadda74b3049711887e9ead-Abstract-Conference.html) | Implemented |
 |  QKFormer  | [NeurIPS 2024](https://arxiv.org/abs/2403.16552) | implemented |               TIM                |                              [IJCAI 2024](https://www.ijcai.org/proceedings/2024/0347.pdf)                                           | Implemented |
-More models are to be implemented soon...
+
+更多模型即将实现……
 
 
-### Experiment Results
-The default neuron node used in spiking transformers are `LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))` and the models are in the mode of `layer by layer`. If any 
-special conditions are considered, it will be noted in the supp. of the table.
+### 实验结果
+Spiking Transformer 中默认使用的神经元节点为 `LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))`，且模型以 `逐层` 的模式运行。如果有任何特殊情况，将在表格的补充说明中予以注明。
 
-Other hyper-param setting are following the original paper.
+其他超参数设定均遵循原文设定
+
 #### CIFAR
 |   Model    | Batch-Size | Dataset  | Step | Epoch | Result(Acc@1) |  supp.   |
 |:----------:|:----------:|:--------:|:-------:|:-----:|:-------------:|:--------:|
@@ -32,11 +33,11 @@ Other hyper-param setting are following the original paper.
 |  QKFormer  |     64     | CIFAR10  | 4 |  400  |  96.5(+0.32)  |    -     |
 
 #### ImageNet-1K
-to be updated
+待更新
 
 ### Guidelines
 #### Code Environment
-1. **The path configuration for your code repository should be as follows.**
+1. **项目的基本配置路径如下**
 ```angular2html
 .
 ├── Readme.md
@@ -64,25 +65,26 @@ to be updated
         └── node.py
 ```
 
-2. **Install the required packages.**
+2. **安装环境**
 ```angular2html
     conda create -n [your_env_name] python=3.8 -y
     conda activate [your_env_name]
     pip install -r requirements.txt
 ```
 
-3. **Configure your model**
+3. **配置模型**
 
-    To configure your model and place it under ```models/static``` or ```model/dvs``` directory, along with registering the model using timm‘s register function.
-    
-    To write config files and place them under ```configs/[your_model]``` directory, the format should **strictly** flollow the format of the existing config files. We highly recommend this method even you can use only one ```.yml``` file to config the model. The reason for separating model configuration and training hyperparameters is to facilitate debugging and make the tuning process easier.
-    
-    Eventually, to import the registered model in ```train.py```.
+   要配置模型并将其放置于 ```models/static``` 或 ```model/dvs``` 目录下，同时使用 timm 的注册函数注册模型。
+
+编写配置文件并将其放置于 ```configs/[your_model]``` 目录下，文件格式必须**严格**遵循现有配置文件的格式。我们强烈推荐使用这种方法，即使您仅使用一个 ```.yml``` 文件来配置模型也是如此。将模型配置与训练超参数分离的原因在于便于调试并简化调参过程。
+
+最终，在 ```train.py``` 或```train_dvs.py```中导入已注册的模型。
 
 
-4. **Run the training script**
+4. **启动训练脚本**
 
-Since dynamic and static datasets typically use different loading methods and data augmentation techniques, most models employ two separate scripts with corresponding augmentation strategies. Therefore, we also divide the scripts into two here.
+由于动态数据集和静态数据集通常使用不同的加载方法和数据增强技术，大多数模型都采用两套独立的脚本并配备相应的数据增强策略。因此，我们在此也将脚本分为两部分。
+
 
 **For Static Datasets:**
 ```angular2html
@@ -96,7 +98,7 @@ Since dynamic and static datasets typically use different loading methods and da
     python train_dvs.py --model-config configs/[your_model]/[your_dataset].yml --train-config configs/[your_model]/train.yml
 ```
 
-### Supported Datasets
+### 支持的数据集
 |                                                 Dataset                                                 |  Type  | Mission | |                                                    Dataset                                                    |  Type  | Mission  |
 |:-------------------------------------------------------------------------------------------------------:|:------:|:-------:|:-:|:-------------------------------------------------------------------------------------------------------------:|:------:|:--------:|
 |                                              [CIFAR10 ](https://www.cs.toronto.edu/~kriz/cifar.html)                                               | Static |   cls   | |                                                 [CIFAR100](https://www.cs.toronto.edu/~kriz/cifar.html)                                                  | Static |   cls    |
