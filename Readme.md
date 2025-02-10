@@ -9,10 +9,12 @@ Our code repository will remain updated. If you have any questions, please feel 
 
 ### Implemented & To-implement Models
 
-|   Model    |                    Pub. Info.                    |   Status    |              Model               |                                                              Pub. Info.                                                              |   Status    |
-|:----------:|:------------------------------------------------:|:-----------:|:--------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------:|:-----------:|
-| Spikformer |  [ICLR 2023](https://arxiv.org/abs/2209.15425)   |   testing   | Spike-driven Transformer(SDT v1) | [NeurIPS 2023](https://proceedings.neurips.cc/paper_files/paper/2023/hash/ca0f5358dbadda74b3049711887e9ead-Abstract-Conference.html) | Implemented |
-|  QKFormer  | [NeurIPS 2024](https://arxiv.org/abs/2403.16552) | implemented |               TIM                |                              [IJCAI 2024](https://www.ijcai.org/proceedings/2024/0347.pdf)                                           | Implemented |
+|     Model     |                    Pub. Info.                    |   Status    |              Model               |                                                              Pub. Info.                                                              |   Status    |
+|:-------------:|:------------------------------------------------:|:-----------:|:--------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------:|:-----------:|
+|  Spikformer   |  [ICLR 2023](https://arxiv.org/abs/2209.15425)   |   testing   | Spike-driven Transformer(SDT v1) | [NeurIPS 2023](https://proceedings.neurips.cc/paper_files/paper/2023/hash/ca0f5358dbadda74b3049711887e9ead-Abstract-Conference.html) | Implemented |
+|   QKFormer    | [NeurIPS 2024](https://arxiv.org/abs/2403.16552) | implemented |               TIM                |                                    [IJCAI 2024](https://www.ijcai.org/proceedings/2024/0347.pdf)                                     | Implemented |
+| Spikingformer |    [Arxiv](https://arxiv.org/abs/2304.11954)     |   testing   |                -                 |                                                                  -                                                                   |      -      |
+
 More models are to be implemented soon...
 
 
