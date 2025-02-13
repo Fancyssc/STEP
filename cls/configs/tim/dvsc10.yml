@@ -7,7 +7,6 @@ patch_size: 16
 
 #data augmentation
 
-epochs: 300   #epochs
 
 # model structure
 model: "tim"

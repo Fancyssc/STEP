@@ -434,6 +434,11 @@ def main():
         model_name = create_model_args['model'],
         **create_model_args
     ).to(args.device)
+    # node type & act function & alpha
+    print("model node type: " + str(create_model_args['node']))
+    print("model act_func: " + str(create_model_args['act_func']))
+    print("model alpha value: " + str(create_model_args['alpha']))
+
     # model.cuda()
     _logger.info("Model created and moved to device.")
 

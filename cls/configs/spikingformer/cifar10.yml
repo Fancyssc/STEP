@@ -50,4 +50,4 @@ tau: 2.0
 threshold: 1.0
 act_function: SigmoidGrad
 node_type: LIFNode
-alpha: 4.0
+alpha: 4

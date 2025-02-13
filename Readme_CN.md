@@ -24,15 +24,16 @@ Spiking Transformer 中默认使用的神经元节点为 `LIFNode(tau=2.,thres=1
 其他超参数设定均遵循原文设定
 
 #### CIFAR
-|   Model    | Batch-Size | Dataset  | Step | Epoch | Result(Acc@1) |  supp.   |
-|:----------:|:----------:|:--------:|:-------:|:-----:|:-------------:|:--------:|
-| Spikformer |    128     | CIFAR10  | 4 |  300  | 94.47(-0.72)  |    -     |
-| Spikformer |    128     | CIFAR10  | 4 |  400  | 95.03(-0.48)  |    -     |
-||            ||||
-|    SDT     |     64     | CIFAR10  | 4 |  300  | 95.26(-0.34)  |    -     |
-||            ||||
-|  QKFormer  |     64     | CIFAR10  | 4 |  400  |  96.5(+0.32)  |    -     |
-
+|        Model        | Batch-Size | Dataset  | Step | Epoch | Result(Acc@1) |  supp.   |
+|:-------------------:|:----------:|:--------:|:-------:|:-----:|:-------------:|:--------:|
+|     Spikformer      |    128     | CIFAR10  | 4 |  300  | 94.47(-0.72)  |    -     |
+|     Spikformer      |    128     | CIFAR10  | 4 |  400  | 95.03(-0.48)  |    -     |
+|                     |            ||||
+|         SDT         |     64     | CIFAR10  | 4 |  300  | 95.26(-0.34)  |    -     |
+|                     |            ||||
+|      QKFormer       |     64     | CIFAR10  | 4 |  400  |  96.5(+0.32)  |    -     |
+|                     |            ||||
+|    Spikingformer    |    128     | CIFAR10  | 4 |  400  | 95.34(-0.47)  |    -     |
 #### ImageNet-1K
 待更新
 

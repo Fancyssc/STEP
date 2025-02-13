@@ -1,4 +1,5 @@
 from braincog.model_zoo.base_module import BaseModule
+from sympy import acosh
 from timm.models import register_model
 from timm.models.layers import trunc_normal_
 from timm.models.vision_transformer import _cfg
@@ -189,7 +190,6 @@ class MLP(BaseModule):
 class Block(nn.Module):
     def __init__(self, embed_dim=384, num_heads=12, step=4,mlp_ratio=4. ,attn_scale=0.125, attn_drop=0.,mlp_drop=0.,node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.,layer_by_layer=True):
         super().__init__()
-
         self.attn = SSA(embed_dim, step=step, num_heads=num_heads,attn_drop=attn_drop, attn_scale=attn_scale,
                         node=node,tau=tau,act_func=act_func,threshold=threshold,alpha=alpha,layer_by_layer=layer_by_layer)
         # self.layernorm1 = nn.LayerNorm(embed_dim)
@@ -213,7 +213,7 @@ class Spikformer(BaseModule):
         self.T = step  # time step
         self.num_classes = num_classes
         self.depths = depths
-
+        # self.act_func = act_func
         # dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depths)]  # stochastic depth decay rule
 
         patch_embed = SPS(       img_h=img_size,

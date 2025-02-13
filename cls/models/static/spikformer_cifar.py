@@ -7,12 +7,6 @@ from braincog.base.node import LIFNode
 from braincog.base.strategy.surrogate import *
 
 import torch.nn as nn
-from torch.onnx.symbolic_opset9 import detach
-
-# # 本地调用包出错是时可以解注释如下代码
-# from cls.utils.layers import *
-# from cls.utils.node import *
-#
 
 """
 Spikformer version 1 (ICLR2023)
