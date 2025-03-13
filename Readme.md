@@ -77,7 +77,7 @@ to be updated
 
     To configure your model and place it under ```models/static``` or ```model/dvs``` directory, along with registering the model using timm‘s register function.
     
-    To write config files and place them under ```configs/[your_model]``` directory, the format should **strictly** flollow the format of the existing config files. We highly recommend this method even you can use only one ```.yml``` file to config the model. The reason for separating model configuration and training hyperparameters is to facilitate debugging and make the tuning process easier.
+    To write config files and place them under ```configs/[your_model]``` directory, the format should **strictly** flollow the format of the existing config files. We highly recommend this method which keeps structures of all ```.yml``` files clear and consistent. The reason for separating model configuration and training hyperparameters is to facilitate debugging and make the tuning process easier.
     
     Eventually, to import the registered model in ```train.py```.
 
@@ -88,14 +88,14 @@ Since dynamic and static datasets typically use different loading methods and da
 
 **For Static Datasets:**
 ```angular2html
-    python train.py --model-config configs/[your_model]/[your_dataset].yml --train-config configs/[your_model]/train.yml
+    python train.py --config configs/[your_model]/[your_dataset].yml
 ```
 
 
 
 **For DVS Datasets:**
 ```angular2html
-    python train_dvs.py --model-config configs/[your_model]/[your_dataset].yml --train-config configs/[your_model]/train.yml
+    python train_dvs.py --config configs/[your_model]/[your_dataset].yml 
 ```
 
 ### Supported Datasets

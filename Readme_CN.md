@@ -78,7 +78,7 @@ Spiking Transformer 中默认使用的神经元节点为 `LIFNode(tau=2.,thres=1
 
    要配置模型并将其放置于 ```models/static``` 或 ```model/dvs``` 目录下，同时使用 timm 的注册函数注册模型。
 
-编写配置文件并将其放置于 ```configs/[your_model]``` 目录下，文件格式必须**严格**遵循现有配置文件的格式。我们强烈推荐使用这种方法，即使您仅使用一个 ```.yml``` 文件来配置模型也是如此。将模型配置与训练超参数分离的原因在于便于调试并简化调参过程。
+编写配置文件并将其放置于 ```configs/[your_model]``` 目录下，文件格式必须**严格**遵循现有配置文件的格式。我们强烈推荐使用这种方法，并且尽可能在```.yml```文件中保持结构的统一和明晰。将模型配置与训练超参数分离的原因在于便于调试并简化调参过程。
 
 最终，在 ```train.py``` 或```train_dvs.py```中导入已注册的模型。
 
@@ -90,14 +90,14 @@ Spiking Transformer 中默认使用的神经元节点为 `LIFNode(tau=2.,thres=1
 
 **For Static Datasets:**
 ```angular2html
-    python train.py --model-config configs/[your_model]/[your_dataset].yml --train-config configs/[your_model]/train.yml
+    python train.py --config configs/[your_model]/[your_dataset].yml 
 ```
 
 
 
 **For DVS Datasets:**
 ```angular2html
-    python train_dvs.py --model-config configs/[your_model]/[your_dataset].yml --train-config configs/[your_model]/train.yml
+    python train_dvs.py --config configs/[your_model]/[your_dataset].yml 
 ```
 
 ### 支持的数据集

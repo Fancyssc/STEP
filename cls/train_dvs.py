@@ -60,11 +60,13 @@ _logger = logging.getLogger('train')
 # The first arg parser parses out only the --config argument, this argument is used to
 # load a yaml file containing key-values that override the defaults for the main parser below
 config_parser = parser = argparse.ArgumentParser(description='Training Config', add_help=False)
-parser.add_argument( '--train-config', default='configs/spikformer/train.yml', type=str, metavar='FILE',
-                    help='YAML config file specifying training arguments')
-parser.add_argument('--model-config',default='configs/spikformer/cifar10.yml',type=str, metavar='FILE',
-                    help='YAML config file specifying model arguments')
+# parser.add_argument( '--train-config', default='configs/spikformer/train.yml', type=str, metavar='FILE',
+#                     help='YAML config file specifying training arguments')
+# parser.add_argument('--model-config',default='configs/spikformer/cifar10.yml',type=str, metavar='FILE',
+#                     help='YAML config file specifying model arguments')
 
+parser.add_argument('--config',default='configs/spikformer/cifar10.yml',type=str, metavar='FILE',
+                    help='YAML config file specifying model arguments')
 
 parser = argparse.ArgumentParser(description='SNN Training and Evaluating')
 
@@ -394,13 +396,18 @@ def _parse_args():
     # Do we have a config file to parse?
     args_config, remaining = config_parser.parse_known_args()
     # read train config
-    if args_config.train_config:
-        with open(args_config.train_config, 'r') as f:
-            cfg = yaml.safe_load(f)
-            parser.set_defaults(**cfg)
-    # read model config
+    # if args_config.train_config:
+    #     with open(args_config.train_config, 'r') as f:
+    #         cfg = yaml.safe_load(f)
+    #         parser.set_defaults(**cfg)
+    # # read model config
+    # if args_config.model_config:
+    #     with open(args_config.model_config, 'r') as f:
+    #         cfg = yaml.safe_load(f)
+    #         parser.set_defaults(**cfg)
+
     if args_config.model_config:
-        with open(args_config.model_config, 'r') as f:
+        with open(args_config.config, 'r') as f:
             cfg = yaml.safe_load(f)
             parser.set_defaults(**cfg)
 

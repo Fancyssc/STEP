@@ -6,13 +6,13 @@ img_size: 32
 
 #data augmentation
 mean:
-    - 0.4914
-    - 0.4822
-    - 0.4465
+    - 0.5071
+    - 0.4867
+    - 0.4408
 std:
-    - 0.2470
-    - 0.2435
-    - 0.2616
+    - 0.2675
+    - 0.2565
+    - 0.2761
 crop_pct: 1.0
 scale:
     - 1.0
@@ -22,7 +22,7 @@ color_jitter: 0.
 interpolation: bicubic
 train_interpolation: bicubic
 aa: rand-m9-n1-mstd0.4-inc1
-epochs: 400  # epochs
+epochs: 400   #epochs
 mixup: 0.5
 mixup_off_epoch: 200
 mixup_prob: 1.0
@@ -32,12 +32,13 @@ cutmix: 0.0
 reprob: 0.25
 remode: const
 
-#model structure
-model: "qkformer_cifar"
+# model structure
+model: "spikf_semm_cifar"
 step: 4
+patch_size: 4
+in_channels: 3
 embed_dim: 384
 num_heads: 8
-patch_size: 4
 mlp_ratio: 4
 attn_scale: 0.125
 mlp_drop: 0.0
@@ -53,8 +54,8 @@ alpha: 4.0
 
 # train hyperparam
 amp: True
-batch_size: 64
-val_batch_size: 64
+batch_size: 128
+val_batch_size: 128
 lr: 1e-3
 min_lr: 1e-5
 sched: cosine
@@ -68,8 +69,8 @@ workers: 8
 seed: 42
 log_interval: 200
 
-# device
-device: 0
-
 # log dir
 output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/"
+
+# device
+device: 2

@@ -51,3 +51,26 @@ threshold: 1.0
 act_function: SigmoidGrad
 node_type: LIFNode
 alpha: 4
+
+# train hyperparam
+amp: True
+batch_size: 128
+val_batch_size: 128
+lr: 5e-4
+min_lr: 1e-5
+sched: cosine
+weight_decay: 6e-2
+cooldown_epochs: 10
+warmup_epochs: 20
+warmup_lr: 0.00001
+opt: adamw
+smoothing: 0.1
+workers: 8
+seed: 42
+log_interval: 200
+
+# device
+device: 0
+
+# log dir
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/"

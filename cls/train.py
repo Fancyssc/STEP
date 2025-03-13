@@ -38,7 +38,7 @@ from braincog.base.strategy.surrogate import *
 # from utils.node import *
 
 #import model here
-from models.static import spikformer_cifar, qkformer_cifar, sdt_cifar,spikingformer_cifar
+from models.static import spikformer_cifar, qkformer_cifar, sdt_cifar,spikingformer_cifar,spikf_semm_cifar, sglformer_cifar
 from models.dvs import tim
 # from models.static import spikformer_img
 # from official import spikformer_official
@@ -73,9 +73,12 @@ _logger = logging.getLogger('train')
 # The first arg parser parses out only the --config argument, this argument is used to
 # load a yaml file containing key-values that override the defaults for the main parser below
 config_parser = parser = argparse.ArgumentParser(description='Training Config', add_help=False)
-parser.add_argument( '--train-config', default='configs/spikformer/train.yml', type=str, metavar='FILE',
-                    help='YAML config file specifying training arguments')
-parser.add_argument('--model-config',default='configs/spikformer/cifar10.yml',type=str, metavar='FILE',
+# parser.add_argument( '--train-config', default='configs/spikformer/train.yml', type=str, metavar='FILE',
+#                     help='YAML config file specifying training arguments')
+# parser.add_argument('--model-config',default='configs/spikformer/cifar10.yml',type=str, metavar='FILE',
+#                     help='YAML config file specifying model arguments')
+
+parser.add_argument('--config',default='configs/spikformer/cifar10.yml',type=str, metavar='FILE',
                     help='YAML config file specifying model arguments')
 
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
@@ -341,14 +344,20 @@ def color_text(text, color_code):
 #model config loader
 def _parse_args():
     args_config, remaining = config_parser.parse_known_args()
-    #read train config
-    if args_config.train_config:
-        with open(args_config.train_config, 'r') as f:
-            cfg = yaml.safe_load(f)
-            parser.set_defaults(**cfg)
-    #read model config
-    if args_config.model_config:
-        with open(args_config.model_config, 'r') as f:
+    # #read train config
+    # if args_config.train_config:
+    #     with open(args_config.train_config, 'r') as f:
+    #         cfg = yaml.safe_load(f)
+    #         parser.set_defaults(**cfg)
+    # #read model config
+    # if args_config.model_config:
+    #     with open(args_config.model_config, 'r') as f:
+    #         cfg = yaml.safe_load(f)
+    #         parser.set_defaults(**cfg)
+
+    # only one config file needed in new edition
+    if args_config.config:
+        with open(args_config.config, 'r') as f:
             cfg = yaml.safe_load(f)
             parser.set_defaults(**cfg)
 
