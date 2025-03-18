@@ -13,7 +13,8 @@ Our code repository will remain updated. If you have any questions, please feel 
 |:-------------:|:------------------------------------------------:|:-----------:|:--------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------:|:-----------:|
 |  Spikformer   |  [ICLR 2023](https://arxiv.org/abs/2209.15425)   |   testing   | Spike-driven Transformer(SDT v1) | [NeurIPS 2023](https://proceedings.neurips.cc/paper_files/paper/2023/hash/ca0f5358dbadda74b3049711887e9ead-Abstract-Conference.html) | Implemented |
 |   QKFormer    | [NeurIPS 2024](https://arxiv.org/abs/2403.16552) | implemented |               TIM                |                                    [IJCAI 2024](https://www.ijcai.org/proceedings/2024/0347.pdf)                                     | Implemented |
-| Spikingformer |    [Arxiv](https://arxiv.org/abs/2304.11954)     |   testing   |                -                 |                                                                  -                                                                   |      -      |
+| Spikingformer |    [Arxiv](https://arxiv.org/abs/2304.11954)     |   testing   |        Spikformer + SEMM         |                                                             [NeurIPS](https://openreview.net/forum?id=WcIeEtY3AG)                                                              |   testing   |
+|   SGLFormer   |  [Frontiers in Neuroscience](https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2024.1371290/full)|   testing   |
 
 More models are to be implemented soon...
 
@@ -24,14 +25,20 @@ special conditions are considered, it will be noted in the supp. of the table.
 
 Other hyper-param setting are following the original paper.
 #### CIFAR
-|   Model    | Batch-Size | Dataset  | Step | Epoch | Result(Acc@1) |  supp.   |
-|:----------:|:----------:|:--------:|:-------:|:-----:|:-------------:|:--------:|
-| Spikformer |    128     | CIFAR10  | 4 |  300  | 94.47(-0.72)  |    -     |
-| Spikformer |    128     | CIFAR10  | 4 |  400  | 95.03(-0.48)  |    -     |
-||            ||||
-|    SDT     |     64     | CIFAR10  | 4 |  300  | 95.26(-0.34)  |    -     |
-||            ||||
-|  QKFormer  |     64     | CIFAR10  | 4 |  400  |  96.5(+0.32)  |    -     |
+|       Model       | Batch-Size | Dataset | Step | Epoch | Result(Acc@1) |          supp.          |
+|:-----------------:|:----------:|:-------:|:-------:|:-----:|:-------------:|:-----------------------:|
+|    Spikformer     |    128     | CIFAR10 | 4 |  300  | 94.47(-0.72)  |            -            |
+|    Spikformer     |    128     | CIFAR10 | 4 |  400  | 95.03(-0.48)  |            -            |
+|                   |            |         |||
+|        SDT        |     64     | CIFAR10 | 4 |  300  | 95.26(-0.34)  |            -            |
+|                   |            |         |||
+|     QKFormer      |     64     | CIFAR10 | 4 |  400  |  96.5(+0.32)  |            -            |
+|                   |            |         |||
+|   Spikingformer   |    128     | CIFAR10 | 4 |  400  | 95.34(-0.47)  |            -            |
+|                   |            |         |||
+| Spikformer + SEMM |    128     | CIFAR10 | 4 |  400  | 94.83(-0.95)  |            -            |
+|                   |            |         |||
+|     SGLFormer     |     32     | CIFAR10 | 4 |  400  | 96.13(-0.63)  | Not original Batch Size |
 
 #### ImageNet-1K
 to be updated
