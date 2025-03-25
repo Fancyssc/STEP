@@ -21,12 +21,12 @@ class MLP(BaseModule):
         self.fc1_conv = nn.Conv2d(in_features, self.hidden_features,1,1,bias=False)
         self.fc1_bn = nn.BatchNorm2d(self.hidden_features)
         self.fc1_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                            layer_by_layer=layer_by_layer, mem_detach=True)
+                            layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.fc2_conv = nn.Conv2d(self.hidden_features, self.out_features,1, 1, bias=False)
         self.fc2_bn = nn.BatchNorm2d(self.out_features)
         self.fc2_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                            layer_by_layer=layer_by_layer, mem_detach=True)
+                            layer_by_layer=layer_by_layer, mem_detach=False)
 
 
     def forward(self, x):
@@ -50,25 +50,25 @@ class GlobalSSA(BaseModule):
         self.q_conv = nn.Conv2d(embed_dim, embed_dim, 1, 1, bias=False)
         self.q_bn = nn.BatchNorm2d(embed_dim)
         self.q_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                         layer_by_layer=layer_by_layer, mem_detach=True)
+                         layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.k_conv = nn.Conv2d(embed_dim, embed_dim, 1, 1, bias=False)
         self.k_bn = nn.BatchNorm2d(embed_dim)
         self.k_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                          layer_by_layer=layer_by_layer, mem_detach=True)
+                          layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.v_conv = nn.Conv2d(embed_dim, embed_dim, 1, 1, bias=False)
         self.v_bn = nn.BatchNorm2d(embed_dim)
         self.v_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                          layer_by_layer=layer_by_layer, mem_detach=True)
+                          layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.attn_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=0.5,
-                          layer_by_layer=layer_by_layer, mem_detach=True)
+                          layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.pro_conv = nn.Conv2d(embed_dim, embed_dim, 1, 1, bias=False)
         self.pro_bn = nn.BatchNorm2d(embed_dim)
         self.pro_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                          layer_by_layer=layer_by_layer, mem_detach=True)
+                          layer_by_layer=layer_by_layer, mem_detach=False)
 
     def forward(self, x):
         self.reset()
@@ -148,25 +148,25 @@ class LocalSSA(BaseModule):
         self.q_conv = nn.Conv2d(embed_dim, embed_dim, 1, 1, bias=False)
         self.q_bn = nn.BatchNorm2d(embed_dim)
         self.q_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                         layer_by_layer=layer_by_layer, mem_detach=True)
+                         layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.k_conv = nn.Conv2d(embed_dim, embed_dim, 1, 1, bias=False)
         self.k_bn = nn.BatchNorm2d(embed_dim)
         self.k_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                          layer_by_layer=layer_by_layer, mem_detach=True)
+                          layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.v_conv = nn.Conv2d(embed_dim, embed_dim, 1, 1, bias=False)
         self.v_bn = nn.BatchNorm2d(embed_dim)
         self.v_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                          layer_by_layer=layer_by_layer, mem_detach=True)
+                          layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.attn_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=0.5,
-                          layer_by_layer=layer_by_layer, mem_detach=True)
+                          layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.pro_conv = nn.Conv2d(embed_dim, embed_dim, 1, 1, bias=False)
         self.pro_bn = nn.BatchNorm2d(embed_dim)
         self.pro_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                          layer_by_layer=layer_by_layer, mem_detach=True)
+                          layer_by_layer=layer_by_layer, mem_detach=False)
 
     def forward(self, x):
         self.reset()
@@ -211,7 +211,7 @@ class Stem(BaseModule):
 
         self.stem_conv = nn.Conv2d(in_channels=in_channels, out_channels=embed_dim//6, kernel_size=3, stride=1, padding=1, bias=False)
         self.stem_bn = nn.BatchNorm2d(embed_dim//6)
-        self.stem_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=True)
+        self.stem_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
 
     def forward(self, x):
         self.reset()
@@ -231,19 +231,19 @@ class Tokenizer(BaseModule):
 
         self.conv1 = nn.Conv2d(embed_dim // 6, embed_dim//4, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(embed_dim // 4)
-        self.lif1 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=True)
+        self.lif1 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.conv2 = nn.Conv2d(embed_dim // 4, embed_dim//2, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(embed_dim // 2)
-        self.lif2 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=True)
+        self.lif2 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.conv3 = nn.Conv2d(embed_dim // 2, embed_dim, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn3 = nn.BatchNorm2d(embed_dim)
-        self.lif3 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=True)
+        self.lif3 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.conv4 = nn.Conv2d(embed_dim, embed_dim, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn4 = nn.BatchNorm2d(embed_dim)
-        self.lif4 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=True)
+        self.lif4 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
 
     def forward(self, x):
         self.reset()
@@ -275,19 +275,19 @@ class LocalBlock(BaseModule):
 
         self.dw_conv1 = nn.Conv2d(embed_dim, embed_dim, 3, 1, 1, groups=embed_dim, bias=False)
         self.bn1 = nn.BatchNorm2d(embed_dim)
-        self.lif1 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=True)
+        self.lif1 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.conv1 = nn.Conv2d(embed_dim, self.dw_dim,1,1,bias=False)
         self.bn2 = nn.BatchNorm2d(self.dw_dim)
-        self.lif2 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=True)
+        self.lif2 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.dw_conv2 = nn.Conv2d(self.dw_dim,self.dw_dim,3,1,1,groups=self.dw_dim,bias=False)
         self.bn3 = nn.BatchNorm2d(self.dw_dim)
-        self.lif3 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=True)
+        self.lif3 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.conv2 = nn.Conv2d(self.dw_dim, embed_dim,1,1,bias=False)
         self.bn4 = nn.BatchNorm2d(embed_dim)
-        self.lif4 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=True)
+        self.lif4 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
 
     def forward(self, x):
         self.reset()

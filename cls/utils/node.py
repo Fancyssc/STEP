@@ -3,8 +3,9 @@ from braincog.base.connection.layer import *
 from braincog.base.strategy.surrogate import *
 
 # for debugging
-from spikingjelly.clock_driven.neuron import MultiStepLIFNode
-
+from spikingjelly.clock_driven.neuron import LIFNode as sj_LIFNode
+from spikingjelly.clock_driven import neuron_kernel
+from spikingjelly.clock_driven import surrogate
 
 class Sigmoid_Grad(SurrogateFunctionBase):
     """
@@ -114,14 +115,16 @@ class LIFNode(lbl_BaseNode):
 
 
 # # for debugging
-class LIFNode_Spikingjelly(MultiStepLIFNode):
-    def __init__(self, step=4, threshold=1.0, tau=2.,act_func=Sigmoid_Grad,):
-        # act_function 接收但是不传
-        super().__init__(v_threshold=threshold, tau=tau)
+class LIFNode_Spikingjelly(sj_LIFNode):
+    def __init__(self, step=4, threshold=1., tau=2.,detach_reset=True, backend='torch', **kwargs):
+        super().__init__(v_threshold=threshold, tau=tau, detach_reset=detach_reset, v_reset=0. , surrogate_function=surrogate.Sigmoid())
+        # self.register_memory('v_seq', None)
         self.step = step
+        self.backend = backend
     def forward(self, x_seq: torch.Tensor):
         assert x_seq.dim() > 1
         x_shape = x_seq.shape
+
         if self.backend == 'torch':
             #方便debug 多封装一层
             x_seq = x_seq.reshape(self.step,-1, *x_shape[1:]).contiguous() #适配braincog框架的输入
@@ -129,13 +132,51 @@ class LIFNode_Spikingjelly(MultiStepLIFNode):
             spike_seq = []
             self.v_seq = []
             for t in range(x_seq.shape[0]):
-                #调用父类的父类。。
-                spike_seq.append(super(MultiStepLIFNode,self).forward(x_seq[t]).unsqueeze(0))
+                # print(self)
+                spike_seq.append(super().forward(x_seq[t]).unsqueeze(0))
                 self.v_seq.append(self.v.unsqueeze(0))
+
             spike_seq = torch.cat(spike_seq, 0)
             self.v_seq = torch.cat(self.v_seq, 0)
+
             return spike_seq.flatten(0,1)
 
         else:
             raise NotImplementedError(self.backend)
 
+
+# # for debugging
+class LIFNode_Spikingjelly_Cupy(sj_LIFNode):
+    def __init__(self, step=4, threshold=1., tau=2.,detach_reset=True, backend='cupy', **kwargs):
+        super().__init__(v_threshold=threshold, tau=tau, detach_reset=detach_reset, v_reset=0. , surrogate_function=surrogate.Sigmoid())
+        self.register_memory('v_seq', None)
+        self.step = step
+        self.backend = backend
+    def forward(self, x_seq: torch.Tensor):
+        assert x_seq.dim() > 1
+        x_shape = x_seq.shape
+
+        if self.backend == 'cupy':
+            #方便debug 多封装一层
+            x_seq = x_seq.reshape(self.step,-1, *x_shape[1:]).contiguous() #适配braincog框架的输入
+
+            if isinstance(self.v, float):
+                v_init = self.v
+                self.v = torch.zeros_like(x_seq[0].data)
+                if v_init != 0.:
+                    torch.fill_(self.v, v_init)
+
+            spike_seq, self.v_seq = neuron_kernel.MultiStepLIFNodePTT.apply(
+                x_seq.flatten(1), self.v.flatten(0), self.decay_input, self.tau, self.v_threshold, self.v_reset,
+                self.detach_reset, self.surrogate_function.cuda_code)
+
+            spike_seq = spike_seq.reshape(x_seq.shape)
+            self.v_seq = self.v_seq.reshape(x_seq.shape)
+
+            self.v = self.v_seq[-1].clone()
+
+            return spike_seq.flatten(0,1)
+
+
+        else:
+            raise NotImplementedError(self.backend)

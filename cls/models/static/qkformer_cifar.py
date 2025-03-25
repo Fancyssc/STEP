@@ -18,17 +18,17 @@ class Token_QK_Attention(BaseModule):
         self.num_heads = num_heads
         self.q_conv = nn.Conv1d(embed_dim, embed_dim, kernel_size=1, stride=1, bias=False)
         self.q_bn = nn.BatchNorm1d(embed_dim)
-        self.q_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer)
+        self.q_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
 
         self.k_conv = nn.Conv1d(embed_dim, embed_dim, kernel_size=1, stride=1, bias=False)
         self.k_bn = nn.BatchNorm1d(embed_dim)
-        self.k_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer)
+        self.k_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
 
-        self.attn_lif = node(step=step,tau=tau,act_func=act_func(alpha=alpha),threshold=0.5,layer_by_layer=layer_by_layer) # special v_thres
+        self.attn_lif = node(step=step,tau=tau,act_func=act_func(alpha=alpha),threshold=0.5,layer_by_layer=layer_by_layer,mem_detach=False) # special v_thres
 
         self.proj_conv = nn.Conv1d(embed_dim, embed_dim, kernel_size=1, stride=1)
         self.proj_bn = nn.BatchNorm1d(embed_dim)
-        self.proj_lif = node(step=step,tau=tau,act_func=act_func(alpha=alpha),threshold=threshold,layer_by_layer=layer_by_layer)
+        self.proj_lif = node(step=step,tau=tau,act_func=act_func(alpha=alpha),threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
 
     def forward(self, x):
         self.reset()
@@ -66,21 +66,21 @@ class SSA(BaseModule):
         self.scale = scale
         self.q_conv = nn.Conv1d(embed_dim, embed_dim, kernel_size=1, stride=1, bias=False)
         self.q_bn = nn.BatchNorm1d(embed_dim)
-        self.q_lif = node(step=step,tau=tau,act_func=act_func(alpha=alpha),threshold=threshold,layer_by_layer=layer_by_layer)
+        self.q_lif = node(step=step,tau=tau,act_func=act_func(alpha=alpha),threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
 
         self.k_conv = nn.Conv1d(embed_dim, embed_dim, kernel_size=1, stride=1, bias=False)
         self.k_bn = nn.BatchNorm1d(embed_dim)
-        self.k_lif = node(step=step,tau=tau,act_func=act_func(alpha=alpha),threshold=threshold,layer_by_layer=layer_by_layer)
+        self.k_lif = node(step=step,tau=tau,act_func=act_func(alpha=alpha),threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
 
         self.v_conv = nn.Conv1d(embed_dim, embed_dim, kernel_size=1, stride=1, bias=False)
         self.v_bn = nn.BatchNorm1d(embed_dim)
-        self.v_lif = node(step=step,tau=tau,act_func=act_func(alpha=alpha),threshold=threshold,layer_by_layer=layer_by_layer)
+        self.v_lif = node(step=step,tau=tau,act_func=act_func(alpha=alpha),threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
 
-        self.attn_lif = node(step=step,tau=tau,act_func=act_func(alpha=alpha),threshold=0.5,layer_by_layer=layer_by_layer) #special v_thres
+        self.attn_lif = node(step=step,tau=tau,act_func=act_func(alpha=alpha),threshold=0.5,layer_by_layer=layer_by_layer,mem_detach=False) #special v_thres
 
         self.proj_conv = nn.Conv1d(embed_dim, embed_dim, kernel_size=1, stride=1)
         self.proj_bn = nn.BatchNorm1d(embed_dim)
-        self.proj_lif = node(step=step,tau=tau,act_func=act_func(alpha=alpha),threshold=threshold,layer_by_layer=layer_by_layer)
+        self.proj_lif = node(step=step,tau=tau,act_func=act_func(alpha=alpha),threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
 
         self.qkv_mp = nn.MaxPool1d(4)
 
@@ -129,11 +129,11 @@ class MLP(BaseModule):
 
         self.fc_conv1 = nn.Conv2d(in_features, self.hidden_features, kernel_size=1, stride=1)
         self.fc_bn1 = nn.BatchNorm2d(self.hidden_features)
-        self.fc_lif1 = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer)
+        self.fc_lif1 = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
 
         self.fc_conv2 = nn.Conv2d(self.hidden_features, self.out_features, kernel_size=1, stride=1)
         self.fc_bn2 = nn.BatchNorm2d(self.out_features)
-        self.fc_lif2 = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer)
+        self.fc_lif2 = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
 
     def forward(self, x):
         self.reset()
@@ -191,15 +191,15 @@ class PatchInit(BaseModule):
 
         self.proj_conv = nn.Conv2d(in_channels, embed_dim // 2, kernel_size=3, stride=1, padding=1, bias=False)
         self.proj_bn = nn.BatchNorm2d(embed_dim // 2)
-        self.proj_lif = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer)
+        self.proj_lif = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
 
         self.proj1_conv = nn.Conv2d(embed_dim // 2, embed_dim // 1, kernel_size=3, stride=1, padding=1, bias=False)
         self.proj1_bn = nn.BatchNorm2d(embed_dim // 1)
-        self.proj1_lif = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer)
+        self.proj1_lif = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
 
         self.proj_res_conv = nn.Conv2d(embed_dim // 2, embed_dim // 1, kernel_size=1, stride=1, padding=0, bias=False)
         self.proj_res_bn = nn.BatchNorm2d(embed_dim)
-        self.proj_res_lif = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer)
+        self.proj_res_lif = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
 
     def forward(self, x):
         self.reset()
@@ -236,16 +236,16 @@ class PatchEmbedding(BaseModule):
 
         self.proj3_conv = nn.Conv2d(embed_dim // 2, embed_dim, kernel_size=3, stride=1, padding=1, bias=False)
         self.proj3_bn = nn.BatchNorm2d(embed_dim)
-        self.proj3_lif = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer)
+        self.proj3_lif = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
 
         self.proj4_conv = nn.Conv2d(embed_dim, embed_dim, kernel_size=3, stride=1, padding=1, bias=False)
         self.proj4_bn = nn.BatchNorm2d(embed_dim)
         self.proj4_maxpool = torch.nn.MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
-        self.proj4_lif = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer)
+        self.proj4_lif = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
 
         self.proj_res_conv = nn.Conv2d(embed_dim // 2, embed_dim, kernel_size=1, stride=2, padding=0, bias=False)
         self.proj_res_bn = nn.BatchNorm2d(embed_dim)
-        self.proj_res_lif = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer)
+        self.proj_res_lif = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
 
     def forward(self, x):
         self.reset()

@@ -6,7 +6,6 @@ import yaml
 import logging
 import os
 
-from huggingface_hub import dataset_info
 from spikingjelly.clock_driven.examples.PPO import device
 
 from utils.node import *
@@ -123,6 +122,7 @@ parser.add_argument('--act-function', type=str, default="SigmoidGrad", metavar='
                     help='surrogate gradient function')
 parser.add_argument('--alpha', type=float, default=4.0, metavar='N',
                     help='surrogate gradient alpha')
+# parser.add_argument("--layer-by-layer",type=bool, default=True, metavar='N',)
 
 # Dataset / Model parameters
 parser.add_argument('--data-dir', metavar='DIR',default="/data0/datasets/CIFAR10",

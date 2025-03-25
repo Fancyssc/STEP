@@ -42,29 +42,29 @@ class SPS(BaseModule):
         self.proj_conv = nn.Conv2d(in_channels, embed_dims // 8, kernel_size=3, stride=1, padding=1, bias=False)
         self.proj_bn = nn.BatchNorm2d(embed_dims // 8)
         self.proj_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                             layer_by_layer=layer_by_layer, mem_detach=True)
+                             layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.proj_conv1 = nn.Conv2d(embed_dims // 8, embed_dims // 4, kernel_size=3, stride=1, padding=1, bias=False)
         self.proj_bn1 = nn.BatchNorm2d(embed_dims // 4)
         self.proj_lif1 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                              layer_by_layer=layer_by_layer, mem_detach=True)
+                              layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.proj_conv2 = nn.Conv2d(embed_dims // 4, embed_dims // 2, kernel_size=3, stride=1, padding=1, bias=False)
         self.proj_bn2 = nn.BatchNorm2d(embed_dims // 2)
         self.proj_lif2 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                              layer_by_layer=layer_by_layer, mem_detach=True)
+                              layer_by_layer=layer_by_layer, mem_detach=False)
         self.maxpool2 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
 
         self.proj_conv3 = nn.Conv2d(embed_dims // 2, embed_dims, kernel_size=3, stride=1, padding=1, bias=False)
         self.proj_bn3 = nn.BatchNorm2d(embed_dims)
         self.proj_lif3 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                              layer_by_layer=layer_by_layer, mem_detach=True)
+                              layer_by_layer=layer_by_layer, mem_detach=False)
         self.maxpool3 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
 
         self.rpe_conv = nn.Conv2d(embed_dims, embed_dims, kernel_size=3, stride=1, padding=1, bias=False)
         self.rpe_bn = nn.BatchNorm2d(embed_dims)
         self.rpe_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                            layer_by_layer=layer_by_layer, mem_detach=True)
+                            layer_by_layer=layer_by_layer, mem_detach=False)
 
 
     def forward(self, x):
@@ -110,30 +110,30 @@ class SDSA(BaseModule):
         self.q_conv = nn.Conv2d(embed_dim, embed_dim, kernel_size=1, stride=1, bias=False)
         self.q_bn = nn.BatchNorm2d(embed_dim)
         self.q_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                             layer_by_layer=layer_by_layer, mem_detach=True)
+                             layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.k_conv = nn.Conv2d(embed_dim, embed_dim, kernel_size=1, stride=1, bias=False)
         self.k_bn = nn.BatchNorm2d(embed_dim)
         self.k_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                             layer_by_layer=layer_by_layer, mem_detach=True)
+                             layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.v_conv = nn.Conv2d(embed_dim, embed_dim, kernel_size=1, stride=1, bias=False)
         self.v_bn = nn.BatchNorm2d(embed_dim)
         self.v_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                             layer_by_layer=layer_by_layer, mem_detach=True)
+                             layer_by_layer=layer_by_layer, mem_detach=False)
         #special v_thres
         self.attn_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=0.5,
-                             layer_by_layer=layer_by_layer, mem_detach=True)
+                             layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.talking_heads = nn.Conv1d(num_heads, num_heads, kernel_size=1, stride=1, bias=False)
         self.talking_heads_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                             layer_by_layer=layer_by_layer, mem_detach=True)
+                             layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.proj_conv = nn.Conv2d(embed_dim, embed_dim, kernel_size=1, stride=1)
         self.proj_bn = nn.BatchNorm2d(embed_dim)
 
         self.shortcut_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                             layer_by_layer=layer_by_layer, mem_detach=True)
+                             layer_by_layer=layer_by_layer, mem_detach=False)
 
     def forward(self, x):
         self.reset()
@@ -201,12 +201,12 @@ class MLP(BaseModule):
         self.fc_conv1 = nn.Conv2d(in_features, self.hidden_features, kernel_size=1, stride=1)
         self.fc_bn1 = nn.BatchNorm2d(self.hidden_features)
         self.fc_lif1 = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                            layer_by_layer=layer_by_layer, mem_detach=True)
+                            layer_by_layer=layer_by_layer, mem_detach=False)
 
         self.fc_conv2 = nn.Conv2d(self.hidden_features, self.out_features, kernel_size=1, stride=1)
         self.fc_bn2 = nn.BatchNorm2d(self.out_features)
         self.fc_lif2 = node(step=step,tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                            layer_by_layer=layer_by_layer, mem_detach=True)
+                            layer_by_layer=layer_by_layer, mem_detach=False)
 
     def forward(self, x):
         self.reset()
@@ -250,7 +250,7 @@ class SDTV1(BaseModule):
         self.num_classes = num_classes
         self.depths = depths
         self.head_lif = node(step=step,tau=2.0, threshold=threshold, act_func=act_func(alpha=alpha),
-                             layer_by_layer=layer_by_layer, mem_detach=True)
+                             layer_by_layer=layer_by_layer, mem_detach=False)
 
         patch_embed = SPS(step=step,
                             img_h=img_size,
