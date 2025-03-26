@@ -7,6 +7,8 @@ from spikingjelly.clock_driven.neuron import LIFNode as sj_LIFNode
 from spikingjelly.clock_driven import neuron_kernel
 from spikingjelly.clock_driven import surrogate
 
+import cupy as cp
+
 class Sigmoid_Grad(SurrogateFunctionBase):
     """
     Sigmoid activation function with gradient
@@ -19,7 +21,6 @@ class Sigmoid_Grad(SurrogateFunctionBase):
     def act_fun(x, alpha):
         return sigmoid.apply(x, alpha)
 
-
 class QGate_Grad(SurrogateFunctionBase):
     def __init__(self, alpha=2., requires_grad=False):
         super().__init__(alpha=alpha, requires_grad=requires_grad)
@@ -28,7 +29,7 @@ class QGate_Grad(SurrogateFunctionBase):
     def act_fun(x, alpha):
         return quadratic_gate.apply(x, alpha)
 
-class lbl_BaseNode(BaseNode):
+class BaseNode_Torch(BaseNode):
     """
     Base Node for Layer by Layer forward propagation
     New OP added to adapt specific dim needed by Spiking Transformers
@@ -87,7 +88,7 @@ class lbl_BaseNode(BaseNode):
             outputs = inputs
         return outputs
 
-class LIFNode(lbl_BaseNode):
+class LIFNode(BaseNode_Torch):
     """
     Leaky Integrate-and-Fire (LIF) neuron model
     :param threshold: The threshold that a neuron needs to reach in order to fire an action potential.
@@ -95,7 +96,7 @@ class LIFNode(lbl_BaseNode):
     :param tau: The time constant of the neuron.
     :param act_fun: The activation function of the neuron.
     """
-    def __init__(self, threshold=1.0, step=4, layer_by_layer=True, tau=2., act_fun=Sigmoid_Grad,mem_detach=True, *args,
+    def __init__(self, threshold=1.0, step=4, layer_by_layer=True, tau=2., act_fun=Sigmoid_Grad,mem_detach=False, *args,
                  **kwargs):
         super().__init__(threshold=threshold, step=step, layer_by_layer=layer_by_layer, mem_detach=mem_detach)
         self.tau = tau
@@ -110,10 +111,7 @@ class LIFNode(lbl_BaseNode):
         self.spike = self.act_fun(self.mem - self.threshold)
         self.mem = self.mem * (1 - self.spike.detach())
 
-
-# Create your self defined node below by following code structure in Braicog
-
-
+# SpikingJelly Node
 # # for debugging
 class LIFNode_Spikingjelly(sj_LIFNode):
     def __init__(self, step=4, threshold=1., tau=2.,detach_reset=True, backend='torch', **kwargs):

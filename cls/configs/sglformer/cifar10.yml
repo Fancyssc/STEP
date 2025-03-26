@@ -54,8 +54,8 @@ alpha: 4.0
 
 # train hyperparam
 amp: True
-batch_size: 32
-val_batch_size: 32
+batch_size: 16
+val_batch_size: 16
 lr: 1e-3
 min_lr: 1e-5
 sched: cosine
@@ -65,12 +65,12 @@ warmup_epochs: 20
 warmup_lr: 0.00001
 opt: adamw
 smoothing: 0.1
-workers: 8
+workers: 16
 seed: 42
 log_interval: 200
 
 # log dir
-output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/"
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/SGLFormer"
 
 # device
-device: 0
+device: 4

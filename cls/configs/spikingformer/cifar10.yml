@@ -54,8 +54,8 @@ alpha: 4
 
 # train hyperparam
 amp: True
-batch_size: 128
-val_batch_size: 128
+batch_size: 64
+val_batch_size: 64
 lr: 5e-4
 min_lr: 1e-5
 sched: cosine
@@ -73,4 +73,4 @@ log_interval: 200
 device: 0
 
 # log dir
-output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/"
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/Spikingformer"

@@ -72,7 +72,7 @@ seed: 42
 log_interval: 200
 
 # device
-device: 3
+device: 4
 
 # log dir
-output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/"
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/SDT"

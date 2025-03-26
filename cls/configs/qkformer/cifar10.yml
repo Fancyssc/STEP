@@ -72,4 +72,4 @@ log_interval: 200
 device: 0
 
 # log dir
-output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/"
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/QKFormer"

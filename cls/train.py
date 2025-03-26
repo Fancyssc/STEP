@@ -37,7 +37,8 @@ from braincog.base.strategy.surrogate import *
 # from utils.node import *
 
 #import model here
-from models.static import spikformer_cifar, qkformer_cifar, sdt_cifar,spikingformer_cifar,spikf_semm_cifar, sglformer_cifar
+from models.static import (spikformer_cifar, qkformer_cifar, sdt_cifar,spikingformer_cifar,spikf_semm_cifar,
+                           sglformer_cifar, spikingresformer_cifar)
 from models.dvs import tim
 # from models.static import spikformer_img
 # from official import spikformer_official

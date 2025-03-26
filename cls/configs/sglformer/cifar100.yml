@@ -22,7 +22,7 @@ color_jitter: 0.
 interpolation: bicubic
 train_interpolation: bicubic
 aa: rand-m9-n1-mstd0.4-inc1
-epochs: 400  # epochs
+epochs: 400   #epochs
 mixup: 0.5
 mixup_off_epoch: 200
 mixup_prob: 1.0
@@ -32,17 +32,18 @@ cutmix: 0.0
 reprob: 0.25
 remode: const
 
-#model structure
-model: "qkformer_cifar"
+# model structure
+model: "sglformer_cifar"
 step: 4
-embed_dim: 384
-num_heads: 8
 patch_size: 4
+in_channels: 3
+embed_dim: 384
+num_heads: 16
 mlp_ratio: 4
 attn_scale: 0.125
 mlp_drop: 0.0
 attn_drop: 0.0
-depths: 4
+depths: 1
 
 # node
 tau: 2.0
@@ -53,23 +54,23 @@ alpha: 4.0
 
 # train hyperparam
 amp: True
-batch_size: 64
-val_batch_size: 64
+batch_size: 16
+val_batch_size: 16
 lr: 1e-3
 min_lr: 1e-5
 sched: cosine
-weight_decay: 6e-2
+weight_decay: 5e-2
 cooldown_epochs: 10
 warmup_epochs: 20
 warmup_lr: 0.00001
 opt: adamw
 smoothing: 0.1
-workers: 8
+workers: 16
 seed: 42
 log_interval: 200
 
+# log dir
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/SGLFormer"
+
 # device
 device: 6
-
-# log dir
-output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/QKFormer"
