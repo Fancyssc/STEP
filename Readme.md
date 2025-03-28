@@ -37,6 +37,8 @@ Other hyper-param setting are following the original paper.
 |                   |            |         |||
 | Spikformer + SEMM |    128     | CIFAR10 | 4 |  400  |     94.98     |            -            |
 |                   |            |         |||
+|  Spiking Wavelet  |    128     | CIFAR10 | 4 |  400  |     95.31     |            -            |
+|                   |            |         |||
 |     SGLFormer     |     16     | CIFAR10 | 4 |  400  |       -       |            -            |
 |                   |            |         |||
 
@@ -45,16 +47,18 @@ Other hyper-param setting are following the original paper.
 |:-----------------:|:----------:|:--------:|:-------:|:-----:|:-------------:|:-----------------------:|
 |    Spikformer     |    128     | CIFAR100 | 4 |  400  |     77.37     |            -            |
 |                   |            |          |||
-|        SDT        |     64     | CIFAR10 | 4 |  300  |     79.18     |            -            |
-|                   |            |         |||
+|        SDT        |     64     | CIFAR10  | 4 |  300  |     79.18     |            -            |
+|                   |            |          |||
 |     QKFormer      |     64     | CIFAR100 | 4 |  400  |     81.05     |            -            |
 |                   |            |          |||
 |   Spikingformer   |    128     | CIFAR100 | 4 |  400  |     79.12     |            -            |
 |                   |            |          |||
-| Spikformer + SEMM |    128     | CIFAR10 | 4 |  400  |       -       |            -            |
-|                   |            |         |||
-|     SGLFormer     |     16     | CIFAR10 | 4 |  400  |       -       |            -            |
-|                   |            |         |||
+| Spikformer + SEMM |    128     | CIFAR100 | 4 |  400  |     77.59     |            -            |
+|                   |            |          |||
+|  Spiking Wavelet  |    128     | CIFAR100 | 4 |  400  |     76.99     |            -            |
+|                   |            |          |||
+|     SGLFormer     |     16     | CIFAR100 | 4 |  400  |       -       |            -            |
+|                   |            |          |||
 #### ImageNet-1K
 to be updated
 

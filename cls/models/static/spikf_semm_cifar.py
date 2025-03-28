@@ -2,8 +2,7 @@ from braincog.model_zoo.base_module import BaseModule
 from timm.models import register_model
 from timm.models.layers import trunc_normal_
 from timm.models.vision_transformer import _cfg
-# from utils.node import *
-from braincog.base.node import LIFNode
+from ..utils.node import *
 from braincog.base.strategy.surrogate import *
 
 import torch.nn as nn

@@ -3,7 +3,7 @@ from einops import rearrange
 from timm.models.layers import trunc_normal_
 from timm.models.registry import register_model
 from timm.models.vision_transformer import _cfg
-from braincog.base.node import LIFNode
+from ..utils.node import *
 from braincog.base.strategy.surrogate import *
 
 """

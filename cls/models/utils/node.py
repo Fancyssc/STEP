@@ -7,7 +7,6 @@ from spikingjelly.clock_driven.neuron import LIFNode as sj_LIFNode
 from spikingjelly.clock_driven import neuron_kernel
 from spikingjelly.clock_driven import surrogate
 
-import cupy as cp
 
 class Sigmoid_Grad(SurrogateFunctionBase):
     """

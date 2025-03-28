@@ -8,7 +8,7 @@ import os
 
 from spikingjelly.clock_driven.examples.PPO import device
 
-from utils.node import *
+from models.utils.node import *
 
 from data.dvs_dataset import *
 from collections import OrderedDict
@@ -38,7 +38,7 @@ from braincog.base.strategy.surrogate import *
 
 #import model here
 from models.static import (spikformer_cifar, qkformer_cifar, sdt_cifar,spikingformer_cifar,spikf_semm_cifar,
-                           sglformer_cifar, spikingresformer_cifar)
+                           sglformer_cifar, spikingresformer_cifar,swformer_cifar)
 from models.dvs import tim
 # from models.static import spikformer_img
 # from official import spikformer_official

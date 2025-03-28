@@ -1,5 +1,5 @@
 from braincog.model_zoo.base_module import BaseModule
-from braincog.base.node import *
+from ..utils.node import *
 from typing import Any, List, Mapping
 from timm.models.registry import register_model
 
