@@ -38,7 +38,7 @@ Spiking Transformer 中默认使用的神经元节点为 `LIFNode(tau=2.,thres=1
 |                   |            |         |||
 |  Spiking Wavelet  |    128     | CIFAR10 | 4 |  400  |     95.31     |            -            |
 |                   |            |         |||
-|     SGLFormer     |     16     | CIFAR10 | 4 |  400  |       -       |            -            |
+|     SGLFormer     |     16     | CIFAR10 | 4 |  400  |     95.88     |            -            |
 |                   |            |         |||
 
 #### CIFAR 100
@@ -56,7 +56,7 @@ Spiking Transformer 中默认使用的神经元节点为 `LIFNode(tau=2.,thres=1
 |                   |            |          |||
 |  Spiking Wavelet  |    128     | CIFAR100 | 4 |  400  |     76.99     |            -            |
 |                   |            |          |||
-|     SGLFormer     |     16     | CIFAR100 | 4 |  400  |       -       |            -            |
+|     SGLFormer     |     16     | CIFAR100 | 4 |  400  |     80.61     |            -            |
 #### ImageNet-1K
 待更新
 
