@@ -1,7 +1,7 @@
 # for QKFormer on ImageNet (depth=10, hidden_dim=384)
-
+# python train.py --config configs/qkformer/imgnet.yml
 # dataset and model name
-data_dir: "/data0/datasets/ILSVRC2012"
+data_dir: /mnt/data/datasets/ILSVRC2012
 dataset: imagenet
 num_classes: 1000
 img_size: 224

@@ -55,6 +55,7 @@ from braincog.base.strategy.surrogate import *
 from models.static import (
     spikformer_cifar,
     qkformer_cifar,
+    qkformer_imagenet,
     sdt_cifar,
     spikingformer_cifar,
     spikf_semm_cifar,

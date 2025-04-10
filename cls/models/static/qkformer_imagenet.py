@@ -4,6 +4,7 @@ import torch.nn as nn
 
 # from spikingjelly.clock_driven.neuron import MultiStepParametricLIFNode, MultiStepLIFNode
 # from spikingjelly.clock_driven import layer
+from braincog.model_zoo.base_module import BaseModule
 from timm.models.layers import to_2tuple, trunc_normal_, DropPath
 from timm.models.registry import register_model
 from timm.models.vision_transformer import _cfg
@@ -671,7 +672,7 @@ class hierarchical_spiking_transformer(BaseModule):
             img_w=img_size_w,
             patch_size=patch_size,
             in_channels=in_channels,
-            embed_dims=embed_dims // 4,
+            embed_dim=embed_dims // 4,
             step=step,
             node=node,
             tau=tau,
@@ -701,11 +702,11 @@ class hierarchical_spiking_transformer(BaseModule):
         )
 
         patch_embed2 = PatchEmbedding(
-            img_size_h=img_size_h,
-            img_size_w=img_size_w,
+            img_h=img_size_h,
+            img_w=img_size_w,
             patch_size=patch_size,
             in_channels=in_channels,
-            embed_dims=embed_dims // 2,
+            embed_dim=embed_dims // 2,
         )
 
         stage2 = nn.ModuleList(
@@ -728,11 +729,11 @@ class hierarchical_spiking_transformer(BaseModule):
         )
 
         patch_embed3 = PatchEmbedding(
-            img_size_h=img_size_h,
-            img_size_w=img_size_w,
+            img_h=img_size_h,
+            img_w=img_size_w,
             patch_size=patch_size,
             in_channels=in_channels,
-            embed_dims=embed_dims,
+            embed_dim=embed_dims,
         )
 
         stage3 = nn.ModuleList(
@@ -828,7 +829,7 @@ class hierarchical_spiking_transformer(BaseModule):
 
 
 @register_model
-def QKFormer_imagenet(step=1, **kwargs):
+def qkformer_imagenet(step=1, **kwargs):
     model = hierarchical_spiking_transformer(
         step=kwargs.get("step", 4),
         img_size_h=kwargs.get("img_size", 224),
@@ -849,4 +850,5 @@ def QKFormer_imagenet(step=1, **kwargs):
         act_func=kwargs.get("act_func", SigmoidGrad),
         alpha=kwargs.get("alpha", 4.0),
     )
+    model.default_cfg = _cfg()
     return model
