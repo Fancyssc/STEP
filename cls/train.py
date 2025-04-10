@@ -32,6 +32,7 @@ from timm.utils import ApexScaler, NativeScaler
 from braincog.base.node import *
 from braincog.base.strategy.surrogate import *
 
+from models.static.spikformer_cifar import *
 
 
 # from utils.node import *
@@ -111,6 +112,13 @@ parser.add_argument('--attn-drop',type=float, default=None, metavar='N',
                     help='attention drop rate')
 parser.add_argument('--mlp-drop',type=float, default=0.0, metavar='N',
                     help='mlp drop rate')
+
+
+# for meta-transformer
+parser.add_argument('--embed-layer', type=str, default="SPS", metavar='N',
+                    help='embedding method')
+parser.add_argument('--attn-layer', type=str, default="SSA", metavar='N',
+                    help='attention method')
 
 # Model neuron setup
 parser.add_argument('--node-type',type=str, default="LIFNode", metavar='N',
@@ -423,6 +431,7 @@ def main():
     #parse node type
     node_type = globals().get(args.node_type, None)
     act_function = globals().get(args.act_function, None)
+
     if node_type is None:
         raise ValueError(f"Node type {args.node} not found.")
     if act_function is None:
@@ -433,17 +442,22 @@ def main():
     create_model_keys = [
         'model', 'step', 'img_size', 'patch_size', 'in_channels',
         'num_classes', 'embed_dim', 'num_heads', 'mlp_ratio', 'attn_scale',
-        'mlp_drop', 'attn_drop', 'depths', 'tau', 'threshold', 'node_type', 'act_func','alpha',
+        'mlp_drop', 'attn_drop', 'depths', 'tau', 'threshold', 'act_func','alpha',
     ]
     create_model_args = {key: all_args[key] for key in create_model_keys if key in all_args}
     create_model_args['node'] = node_type # node type
     create_model_args['act_func'] = act_function # surrogate gradient
+
+    # for meta-transformer
+    create_model_args['embed_layer'] = args.embed_layer # embedding layer
+    create_model_args['attn_layer'] = args.attn_layer  # embedding layer
 
     #create model
     model = create_model(
         model_name = create_model_args['model'],
         **create_model_args
     ).to(args.device)
+
     # node type & act function & alpha
     print("model node type: " + str(create_model_args['node']))
     print("model act_func: " + str(create_model_args['act_func']))
@@ -461,9 +475,9 @@ def main():
         assert hasattr(model, 'num_classes'), 'Model must have `num_classes` attr if not set on cmd line/config.'
         args.num_classes = model.num_classes  # FIXME handle model default vs config num_classes more elegantly
 
-    if args.local_rank == 0:
-        _logger.info(
-            f'Model {safe_model_name(args.model)} created, param count:{sum([m.numel() for m in model.parameters()])}')
+    # if args.local_rank == 0:
+    #     _logger.info(
+    #         f'Model {safe_model_name(args.model)} created, param count:{sum([m.numel() for m in model.parameters()])}')
 
     data_config = resolve_data_config(vars(args), model=model, verbose=args.local_rank == 0)
 
@@ -664,6 +678,17 @@ def main():
     if args.rank == 0:
         if args.experiment:
             exp_name = args.experiment
+        elif 'meta' in args.output:
+            exp_name = '--'.join([
+                # datetime.now().strftime("%Y%m%d-%H%M%S"),
+                safe_model_name(args.model),
+                str(args.dataset).split("/")[-1],  # 防止创建奇怪的路径
+                args.node_type,
+                args.attn_layer,
+                args.embed_layer,
+                datetime.now().strftime("%Y%m%d-%H%M%S")  # 防止覆盖
+                # str(data_config['input_size'][-1])
+            ])
         else:
             exp_name = '--'.join([
                 # datetime.now().strftime("%Y%m%d-%H%M%S"),

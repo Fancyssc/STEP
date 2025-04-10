@@ -34,40 +34,44 @@ special conditions are considered, it will be noted in the supp. of the table.
 
 Other hyper-param setting are following the original paper.
 #### CIFAR 10
-|       Model       | Batch-Size | Dataset | Step | Epoch | Result(Acc@1) |          supp.          |
-|:-----------------:|:----------:|:-------:|:-------:|:-----:|:-------------:|:-----------------------:|
-|    Spikformer     |    128     | CIFAR10 | 4 |  400  |     95.12     |            -            |
-|                   |            |         |||
-|        SDT        |     64     | CIFAR10 | 4 |  300  |     95.66     |            -            |
-|                   |            |         |||
-|     QKFormer      |     64     | CIFAR10 | 4 |  400  |     96.48     |            -            |
-|                   |            |         |||
-|   Spikingformer   |    128     | CIFAR10 | 4 |  400  |     95.53     |            -            |
-|                   |            |         |||
-| Spikformer + SEMM |    128     | CIFAR10 | 4 |  400  |     94.98     |            -            |
-|                   |            |         |||
-|  Spiking Wavelet  |    128     | CIFAR10 | 4 |  400  |     95.31     |            -            |
-|                   |            |         |||
-|     SGLFormer     |     16     | CIFAR10 | 4 |  400  |       -       |            -            |
-|                   |            |         |||
+|       Model       | Batch-Size | Dataset | Step | Epoch | Result(Acc@1) |                        supp.                         |
+|:-----------------:|:----------:|:-------:|:-------:|:-----:|:-------------:|:----------------------------------------------------:|
+|    Spikformer     |    128     | CIFAR10 | 4 |  400  |     95.12     |                          -                           |
+|                   |            |         ||       |
+|        SDT        |     64     | CIFAR10 | 4 |  300  |     95.66     |                          -                           |
+|                   |            |         ||       |
+|     QKFormer      |     64     | CIFAR10 | 4 |  400  |     96.48     |                          -                           |
+|                   |            |         ||       |
+|   Spikingformer   |    128     | CIFAR10 | 4 |  400  |     95.53     |                          -                           |
+|                   |            |         ||       |
+| Spikformer + SEMM |    128     | CIFAR10 | 4 |  400  |     94.98     |                          -                           |
+|                   |            |         ||       |
+|  Spiking Wavelet  |    128     | CIFAR10 | 4 |  400  |     95.31     |                          -                           |
+|                   |            |         ||       |
+|     SGLFormer     |     16     | CIFAR10 | 4 |  400  |     95.88     |                          -                           |
+|                   |            |         ||       |
+| Spikingresformer  |    128     | CIFAR10 | 4 |  600  |     95.39     |          Transfer Learning Used Originally           |
+|                   |            |         ||       |
 
 #### CIFAR 100
-|       Model       | Batch-Size | Dataset  | Step | Epoch | Result(Acc@1) |          supp.          |
-|:-----------------:|:----------:|:--------:|:-------:|:-----:|:-------------:|:-----------------------:|
-|    Spikformer     |    128     | CIFAR100 | 4 |  400  |     77.37     |            -            |
-|                   |            |          |||
-|        SDT        |     64     | CIFAR10  | 4 |  300  |     79.18     |            -            |
-|                   |            |          |||
-|     QKFormer      |     64     | CIFAR100 | 4 |  400  |     81.05     |            -            |
-|                   |            |          |||
-|   Spikingformer   |    128     | CIFAR100 | 4 |  400  |     79.12     |            -            |
-|                   |            |          |||
-| Spikformer + SEMM |    128     | CIFAR100 | 4 |  400  |     77.59     |            -            |
-|                   |            |          |||
-|  Spiking Wavelet  |    128     | CIFAR100 | 4 |  400  |     76.99     |            -            |
-|                   |            |          |||
-|     SGLFormer     |     16     | CIFAR100 | 4 |  400  |       -       |            -            |
-|                   |            |          |||
+|       Model       | Batch-Size | Dataset  | Step | Epoch | Result(Acc@1) |               supp.               |
+|:-----------------:|:----------:|:--------:|:-------:|:-----:|:-------------:|:---------------------------------:|
+|    Spikformer     |    128     | CIFAR100 | 4 |  400  |     77.37     |                 -                 |
+|                   |            |          ||       |
+|        SDT        |     64     | CIFAR10  | 4 |  300  |     79.18     |                 -                 |
+|                   |            |          ||       |
+|     QKFormer      |     64     | CIFAR100 | 4 |  400  |     81.05     |                 -                 |
+|                   |            |          ||       |
+|   Spikingformer   |    128     | CIFAR100 | 4 |  400  |     79.12     |                 -                 |
+|                   |            |          ||       |
+| Spikformer + SEMM |    128     | CIFAR100 | 4 |  400  |     77.59     |                 -                 |
+|                   |            |          ||       |
+|  Spiking Wavelet  |    128     | CIFAR100 | 4 |  400  |     76.99     |                 -                 |
+|                   |            |          ||       |
+|     SGLFormer     |     16     | CIFAR100 | 4 |  400  |     80.61     |                 -                 |
+|                   |            |          ||       |
+| Spikingresformer  |    128     | CIFAR100 | 4 |  600  |     78.29     | Transfer Learning Used Originally |
+|                   |            |          ||       |
 #### ImageNet-1K
 to be updated
 
@@ -142,3 +146,12 @@ Since dynamic and static datasets typically use different loading methods and da
 |                      [NCARS](https://www.prophesee.ai/2018/03/13/dataset-n-cars/)                       |  DVS   |   cls   | |                     [N-CALTECH101](https://www.garrickorchard.com/datasets/n-caltech101)                      |  DVS   |   cls    |
 |                            [HMDB51-DVS](https://arxiv.org/pdf/1910.03579v2)                             |  DVS   |   cls   | |                               [UCF101-DVS](https://arxiv.org/pdf/1910.03579v2)                                |  DVS   |   cls    |
 
+## Visualization
+We are currently developing content in the **Benchmark** that is used to **visualize the performance of the Transformer**. You can access it by executing the following commands:
+
+```angular2html
+cd SpikingTransformerBenchmark 
+conda activate [env]
+python -m cls.vis.attn_map
+```
+Please **make sure to follow the instructions exactly as shown above**, otherwise, errors may occur due to **path issues**.
