@@ -21,7 +21,9 @@ from braincog.model_zoo.vgg_snn import VGG_SNN, SNN5
 from braincog.model_zoo.resnet19_snn import resnet19
 from braincog.utils import save_feature_map, setup_seed
 
-from models.dvs import tim
+from models.static import (spikformer_cifar, qkformer_cifar, sdt_cifar,spikingformer_cifar,spikf_semm_cifar,
+                           sglformer_cifar, spikingresformer_cifar,swformer_cifar)
+from models.dvs import (tim, spikformer_es)
 
 import torch
 import torch.nn as nn
@@ -65,13 +67,13 @@ config_parser = parser = argparse.ArgumentParser(description='Training Config', 
 # parser.add_argument('--model-config',default='configs/spikformer/cifar10.yml',type=str, metavar='FILE',
 #                     help='YAML config file specifying model arguments')
 
-parser.add_argument('--config',default='configs/spikformer/cifar10.yml',type=str, metavar='FILE',
+parser.add_argument('--config',default='configs/spikformer/cifar10dvs.yml',type=str, metavar='FILE',
                     help='YAML config file specifying model arguments')
 
 parser = argparse.ArgumentParser(description='SNN Training and Evaluating')
 
 # Model parameters
-parser.add_argument('--dataset', default='dvsc10', type=str)
+parser.add_argument('--dataset', default='esimnet', type=str)
 parser.add_argument('--model', default='spikformer', type=str, metavar='MODEL',
                     help='Name of model to train (default: "countception"')
 parser.add_argument('--pretrained', action='store_true', default=False,
@@ -273,7 +275,7 @@ parser.add_argument('--pin-mem', action='store_true', default=False,
                     help='Pin CPU memory in DataLoader for more efficient (sometimes) transfer to GPU.')
 parser.add_argument('--no-prefetcher', action='store_true', default=False,
                     help='disable fast prefetcher')
-parser.add_argument('--output', default='/home/shensicheng/log/spikformer_briancogModel_spikingjellyScript', type=str, metavar='PATH',
+parser.add_argument('--output', default='/home/yuezeyang/cls/dvss', type=str, metavar='PATH',
                     help='path to output folder (default: none, current dir)')
 parser.add_argument('--tensorboard-dir', default='./runs', type=str)
 parser.add_argument('--eval-metric', default='top1', type=str, metavar='EVAL_METRIC',
@@ -395,6 +397,7 @@ except AttributeError:
 def _parse_args():
     # Do we have a config file to parse?
     args_config, remaining = config_parser.parse_known_args()
+    print(remaining)
     # read train config
     # if args_config.train_config:
     #     with open(args_config.train_config, 'r') as f:
@@ -406,14 +409,21 @@ def _parse_args():
     #         cfg = yaml.safe_load(f)
     #         parser.set_defaults(**cfg)
 
-    if args_config.model_config:
+    if args_config.config:
         with open(args_config.config, 'r') as f:
             cfg = yaml.safe_load(f)
             parser.set_defaults(**cfg)
 
     # The main arg parser parses the rest of the args, the usual
     # defaults will have been overridden if config file specified.
-    args = parser.parse_args(remaining)
+    #args = parser.parse_args(remaining)
+    if remaining!=[]:
+        for ii in range(len(remaining)):
+            para, valuee = remaining[ii].split('=')
+            parser.add_argument(para,type=int,default=int(valuee),
+                    help='alpha value for Temporal Interaction Module(TIM)')
+    args = parser.parse_args()
+            
 
     # Cache the args as a text string to save them in the output dir later
     args_text = yaml.safe_dump(args.__dict__, default_flow_style=False)
@@ -456,7 +466,7 @@ def main():
             args.num_gpu = 1
 
     # args.device = 'cuda:0'
-    args.world_size = 1
+    args.world_size = 4
     args.rank = 0  # global rank
     if args.distributed:
         args.num_gpu = 1
@@ -839,7 +849,10 @@ def train_epoch(
             inputs = inputs.contiguous(memory_format=torch.channels_last)
         with amp_autocast():
             output = model(inputs)
-            loss = loss_fn(output, target)
+            if args.distributed:
+                loss = loss_fn(output, target.squeeze(1))
+            else:
+                loss = loss_fn(output, target)
         if args.tet_loss:
             output = output.mean(0)
 
@@ -880,6 +893,8 @@ def train_epoch(
         if last_batch or batch_idx % args.log_interval == 0:
             lrl = [param_group['lr'] for param_group in optimizer.param_groups]
             lr = sum(lrl) / len(lrl)
+            acc1 = acc1.to(args.device)
+            acc5 = acc5.to(args.device)
 
             if args.distributed:
                 loss = reduce_tensor(loss.data, args.world_size)
@@ -998,6 +1013,8 @@ def validate(epoch, model, loader, loss_fn, args, amp_autocast=suppress,
             if args.tet_loss:
                 output = output.mean(0)
             acc1, acc5 = accuracy(output, target, topk=(1, 5))
+            acc1 = acc1.to(args.device)
+            acc5 = acc5.to(args.device)
 
             if args.distributed:
                 reduced_loss = reduce_tensor(loss.data, args.world_size)
