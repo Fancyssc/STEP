@@ -887,11 +887,13 @@ def main():
     args.world_size = 1
     args.rank = 0  # global rank
     if args.distributed:
-        args.device = "cuda:%d" % args.local_rank
-        torch.cuda.set_device(args.local_rank)
-        torch.distributed.init_process_group(backend="nccl", init_method="env://")
+        torch.distributed.init_process_group(backend="nccl")
         args.world_size = torch.distributed.get_world_size()
         args.rank = torch.distributed.get_rank()
+        args.local_rank = int(os.environ["LOCAL_RANK"])
+        # print(f"local rank:{args.local_rank}")
+        args.device = "cuda:%d" % args.local_rank
+        torch.cuda.set_device(args.local_rank)
         _logger.info(
             "Training in distributed mode with multiple processes, 1 GPU per process. Process %d, total %d."
             % (args.rank, args.world_size)
@@ -1081,6 +1083,8 @@ def main():
         else:
             if args.local_rank == 0:
                 _logger.info("Using native Torch DistributedDataParallel.")
+
+            print(f"LOCAL RANK: {args.local_rank}")
             model = NativeDDP(
                 model, device_ids=[args.local_rank], find_unused_parameters=True
             )  # can use device str in Torch >= 1.1
@@ -1100,83 +1104,81 @@ def main():
     if args.local_rank == 0:
         _logger.info("Scheduled epochs: {}".format(num_epochs))
 
-        dataset_train = create_dataset(
-            args.dataset,
-            root=args.data_dir,
-            split=args.train_split,
-            is_training=True,
-            batch_size=args.batch_size,
-            repeats=args.epoch_repeats,
-        )
+    dataset_train = create_dataset(
+        args.dataset,
+        root=args.data_dir,
+        split=args.train_split,
+        is_training=True,
+        batch_size=args.batch_size,
+        repeats=args.epoch_repeats,
+    )
 
-        dataset_eval = create_dataset(
-            args.dataset,
-            root=args.data_dir,
-            split=args.val_split,
-            is_training=False,
-            batch_size=args.batch_size,
-        )
+    dataset_eval = create_dataset(
+        args.dataset,
+        root=args.data_dir,
+        split=args.val_split,
+        is_training=False,
+        batch_size=args.batch_size,
+    )
 
-        # setup mixup / cutmix
-        collate_fn = None
-        mixup_fn = None
-        mixup_active = (
-            args.mixup > 0 or args.cutmix > 0.0 or args.cutmix_minmax is not None
+    # setup mixup / cutmix
+    collate_fn = None
+    mixup_fn = None
+    mixup_active = args.mixup > 0 or args.cutmix > 0.0 or args.cutmix_minmax is not None
+    if mixup_active:
+        mixup_args = dict(
+            mixup_alpha=args.mixup,
+            cutmix_alpha=args.cutmix,
+            cutmix_minmax=args.cutmix_minmax,
+            prob=args.mixup_prob,
+            switch_prob=args.mixup_switch_prob,
+            mode=args.mixup_mode,
+            label_smoothing=args.smoothing,
+            num_classes=args.num_classes,
         )
-        if mixup_active:
-            mixup_args = dict(
-                mixup_alpha=args.mixup,
-                cutmix_alpha=args.cutmix,
-                cutmix_minmax=args.cutmix_minmax,
-                prob=args.mixup_prob,
-                switch_prob=args.mixup_switch_prob,
-                mode=args.mixup_mode,
-                label_smoothing=args.smoothing,
-                num_classes=args.num_classes,
-            )
-            if args.prefetcher:
-                assert (
-                    not num_aug_splits
-                )  # collate conflict (need to support deinterleaving in collate mixup)
-                collate_fn = FastCollateMixup(**mixup_args)
-            else:
-                mixup_fn = Mixup(**mixup_args)
+        if args.prefetcher:
+            assert (
+                not num_aug_splits
+            )  # collate conflict (need to support deinterleaving in collate mixup)
+            collate_fn = FastCollateMixup(**mixup_args)
+        else:
+            mixup_fn = Mixup(**mixup_args)
 
-        # wrap dataset in AugMix helper
-        if num_aug_splits > 1:
-            dataset_train = AugMixDataset(dataset_train, num_splits=num_aug_splits)
+    # wrap dataset in AugMix helper
+    if num_aug_splits > 1:
+        dataset_train = AugMixDataset(dataset_train, num_splits=num_aug_splits)
 
-        # create data loaders w/ augmentation pipeiine
-        train_interpolation = args.train_interpolation
-        if args.no_aug or not train_interpolation:
-            train_interpolation = data_config["interpolation"]
-        loader_train = create_loader(
-            dataset_train,
-            input_size=data_config["input_size"],
-            batch_size=args.batch_size,
-            is_training=True,
-            use_prefetcher=args.prefetcher,
-            no_aug=args.no_aug,
-            re_prob=args.reprob,
-            re_mode=args.remode,
-            re_count=args.recount,
-            re_split=args.resplit,
-            scale=args.scale,
-            ratio=args.ratio,
-            hflip=args.hflip,
-            vflip=args.vflip,
-            color_jitter=args.color_jitter,
-            auto_augment=args.aa,
-            num_aug_splits=num_aug_splits,
-            interpolation=train_interpolation,
-            mean=data_config["mean"],
-            std=data_config["std"],
-            num_workers=args.workers,
-            distributed=args.distributed,
-            collate_fn=collate_fn,
-            pin_memory=args.pin_mem,
-            use_multi_epochs_loader=args.use_multi_epochs_loader,
-        )
+    # create data loaders w/ augmentation pipeiine
+    train_interpolation = args.train_interpolation
+    if args.no_aug or not train_interpolation:
+        train_interpolation = data_config["interpolation"]
+    loader_train = create_loader(
+        dataset_train,
+        input_size=data_config["input_size"],
+        batch_size=args.batch_size,
+        is_training=True,
+        use_prefetcher=args.prefetcher,
+        no_aug=args.no_aug,
+        re_prob=args.reprob,
+        re_mode=args.remode,
+        re_count=args.recount,
+        re_split=args.resplit,
+        scale=args.scale,
+        ratio=args.ratio,
+        hflip=args.hflip,
+        vflip=args.vflip,
+        color_jitter=args.color_jitter,
+        auto_augment=args.aa,
+        num_aug_splits=num_aug_splits,
+        interpolation=train_interpolation,
+        mean=data_config["mean"],
+        std=data_config["std"],
+        num_workers=args.workers,
+        distributed=args.distributed,
+        collate_fn=collate_fn,
+        pin_memory=args.pin_mem,
+        use_multi_epochs_loader=args.use_multi_epochs_loader,
+    )
 
     loader_eval = create_loader(
         dataset_eval,

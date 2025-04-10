@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=1,7 torchrun --nnodes=1 --nproc_per_node=2 --master_port=1234 /mnt/home/fenglinghao/SpikingTransformerBenchmark/cls/train.py --config /mnt/home/fenglinghao/SpikingTransformerBenchmark/cls/configs/qkformer/imgnet.yml
