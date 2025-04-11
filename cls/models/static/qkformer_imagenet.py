@@ -11,7 +11,7 @@ from timm.models.vision_transformer import _cfg
 from einops.layers.torch import Rearrange
 import torch.nn.functional as F
 from functools import partial
-from ..utils.node import *
+from ..utils.node import LIFNode
 from braincog.base.strategy.surrogate import *
 
 __all__ = [
@@ -451,6 +451,7 @@ class PatchInit(BaseModule):
             in_channels, embed_dim // 2, kernel_size=3, stride=1, padding=1, bias=False
         )
         self.proj_bn = nn.BatchNorm2d(embed_dim // 2)
+        self.proj_maxpool = torch.nn.MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
         self.proj_lif = node(
             step=step,
             tau=tau,
@@ -469,6 +470,7 @@ class PatchInit(BaseModule):
             bias=False,
         )
         self.proj1_bn = nn.BatchNorm2d(embed_dim // 1)
+        self.proj1_maxpool = torch.nn.MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
         self.proj1_lif = node(
             step=step,
             tau=tau,
@@ -520,11 +522,13 @@ class PatchInit(BaseModule):
 
         x = self.proj_conv(x)
         x = self.proj_bn(x)
+        x = self.proj_maxpool(x)
         x = self.proj_lif(x)
 
         x_feat = x
         x = self.proj1_conv(x)
         x = self.proj1_bn(x)
+        x = self.proj1_maxpool(x)
         x = self.proj1_lif(x)
 
         x = self.proj2_conv(x)
@@ -569,6 +573,7 @@ class PatchEmbedding(BaseModule):
             embed_dim // 2, embed_dim, kernel_size=3, stride=1, padding=1, bias=False
         )
         self.proj3_bn = nn.BatchNorm2d(embed_dim)
+        self.proj3_maxpool = torch.nn.MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
         self.proj3_lif = node(
             step=step,
             tau=tau,
@@ -582,9 +587,6 @@ class PatchEmbedding(BaseModule):
             embed_dim, embed_dim, kernel_size=3, stride=1, padding=1, bias=False
         )
         self.proj4_bn = nn.BatchNorm2d(embed_dim)
-        self.proj4_maxpool = torch.nn.MaxPool2d(
-            kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False
-        )
         self.proj4_lif = node(
             step=step,
             tau=tau,
@@ -616,11 +618,11 @@ class PatchEmbedding(BaseModule):
 
         x = self.proj3_conv(x)
         x = self.proj3_bn(x)
+        x = self.proj3_maxpool(x)
         x = self.proj3_lif(x)
 
         x = self.proj4_conv(x)
         x = self.proj4_bn(x)
-        x = self.proj4_maxpool(x)
         x = self.proj4_lif(x)
 
         x_feat = self.proj_res_conv(x_feat)
@@ -849,6 +851,6 @@ def qkformer_imagenet(step=1, **kwargs):
         node=kwargs.get("node", LIFNode),
         act_func=kwargs.get("act_func", SigmoidGrad),
         alpha=kwargs.get("alpha", 4.0),
-    )
+    )    
     model.default_cfg = _cfg()
     return model
