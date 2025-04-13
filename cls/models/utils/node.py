@@ -515,3 +515,136 @@ class KLIFNode(BaseNode_Torch):
     def calc_spike(self):
         self.spike = self.act_fun(self.mem - self.threshold)
         self.mem = self.mem * (1 - self.spike.detach())
+
+
+class rectangle(torch.autograd.Function):
+    """
+    CLIF act func
+    """
+
+    @staticmethod
+    def forward(ctx, x, vth):
+        if x.requires_grad:
+            ctx.save_for_backward(x)
+            ctx.vth = vth
+        return heaviside(x)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        grad_x = None
+        if ctx.needs_input_grad[0]:
+            x = ctx.saved_tensors[0]
+            mask1 = (x.abs() > ctx.vth / 2)
+            mask_ = mask1.logical_not()
+            grad_x = grad_output * x.masked_fill(
+                mask_, 1. / ctx.vth).masked_fill(mask1, 0.)
+        return grad_x, None
+
+
+class Rectangle(SurrogateFunctionBase):
+    """
+    CLIF act func class
+    """
+
+    def __init__(self, alpha=1.0, spiking=True):
+        super().__init__(alpha, spiking)
+
+    @staticmethod
+    def spiking_function(x, alpha):
+        return rectangle.apply(x, alpha)
+
+    @staticmethod
+    def primitive_function(x: torch.Tensor, alpha):
+        return torch.min(torch.max(1. / alpha * x, 0.5), -0.5)
+
+
+class ComplementaryLIFNeuron(nn.Module):
+    """
+    CLIF: Complementary Leaky Integrate-and-Fire Neuron for Spiking Neural Networks
+    https://arxiv.org/abs/2402.04663 
+    """
+
+    def __init__(self,
+                 tau: float = 2.,
+                 decay_input: bool = False,
+                 v_threshold: float = 1.,
+                 v_reset: float = None,
+                 surrogate_function: Callable = Rectangle(),
+                 layer_by_layer=True,
+                 **kwargs):
+        super().__init__()
+
+        self.tau = tau
+        self.decay_input = decay_input
+        self.v_threshold = v_threshold
+        self.v_reset = v_reset
+        if v_reset:
+            self.v = v_reset  # membrane potential
+        else:
+            self.v = 0.0
+        self.surrogate_function = surrogate_function
+        self.lbl = layer_by_layer
+
+        self.m = 0  # Complementary memory
+        # self.register_memory('m', 0.)
+
+    def forward(self, inputs: torch.tensor):
+        if self.lbl:
+            return self.forward_lbl(x_seq=inputs)
+        else:
+            return self.forward_timestep(x=inputs)
+
+    def forward_timestep(self, x: torch.Tensor):
+        self.neuronal_charge(x)  # LIF charging
+        self.m = self.m * torch.sigmoid(self.v / self.tau)  # Forming
+        spike = self.neuronal_fire()  # LIF fire
+        self.m += spike  # Strengthen
+        self.neuronal_reset(spike)  # LIF reset
+        self.v = self.v - spike * torch.sigmoid(self.m)  # Reset
+        return spike
+
+    def forward_lbl(self, x_seq: torch.Tensor):
+        assert x_seq.dim() > 1
+        # x_seq.shape = [T, *]
+        spike_seq = []
+        self.v_seq = []
+        for t in range(x_seq.shape[0]):
+            spike_seq.append(self.forward_timestep(x_seq[t]).unsqueeze(0))
+            self.v_seq.append(self.v.unsqueeze(0))
+        spike_seq = torch.cat(spike_seq, 0)
+        self.v_seq = torch.cat(self.v_seq, 0)
+        return spike_seq
+
+    def neuronal_charge(self, x: torch.Tensor):
+        self._charging_v(x)
+
+    def neuronal_reset(self, spike: torch.Tensor):
+        self._reset(spike)
+
+    def neuronal_fire(self):
+        return self.surrogate_function(self.v - self.v_threshold)
+
+    def _charging_v(self, x: torch.Tensor):
+        if self.decay_input:
+            x = x / self.tau
+
+        if self.v_reset is None or self.v_reset == 0:
+            if type(self.v) is float:
+                self.v = x
+            else:
+                self.v = self.v * (1 - 1. / self.tau) + x
+        else:
+            if type(self.v) is float:
+                self.v = self.v_reset * (
+                    1 - 1. / self.tau) + self.v_reset / self.tau + x
+            else:
+                self.v = self.v * (1 -
+                                   1. / self.tau) + self.v_reset / self.tau + x
+
+    def _reset(self, spike):
+        if self.v_reset is None:
+            # soft reset
+            self.v = self.v - spike * self.v_threshold
+        else:
+            # hard reset
+            self.v = (1. - spike) * self.v + spike * self.v_reset
