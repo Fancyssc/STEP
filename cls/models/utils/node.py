@@ -8,6 +8,7 @@ from spikingjelly.clock_driven import neuron_kernel
 from spikingjelly.clock_driven import surrogate
 
 
+
 class Sigmoid_Grad(SurrogateFunctionBase):
     """
     Sigmoid activation function with gradient
@@ -515,13 +516,14 @@ class KLIFNode(BaseNode_Torch):
             act_fun = eval(act_fun)
         self.act_fun = act_fun()
         self.k = nn.Parameter(torch.tensor(1.0), requires_grad=True)
+        self.relu = nn.ReLU()
 
     def integral(self, inputs):
         self.mem = self.mem + (inputs - self.mem) / self.tau
 
         # klif
         self.mem *= self.k
-        self.mem = nn.ReLU(self.mem)
+        self.mem = self.relu(self.mem)
 
     def calc_spike(self):
         self.spike = self.act_fun(self.mem - self.threshold)
