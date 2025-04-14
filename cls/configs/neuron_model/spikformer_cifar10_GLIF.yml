@@ -49,12 +49,12 @@ depths: 4
 tau: 2.0
 threshold: 1.0
 act_function: SigmoidGrad
-node_type: PSNTorch
+node_type: GLIFTorch
 alpha: 4.0
 
 # train hyperparam
 amp: True
-batch_size: 64
+batch_size: 128
 val_batch_size: 128
 lr: 5e-4
 min_lr: 1e-5

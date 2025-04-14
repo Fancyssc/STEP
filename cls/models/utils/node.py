@@ -332,7 +332,7 @@ class SpikeAct_extended(torch.autograd.Function):
 
     @staticmethod
     def backward(ctx, grad_output):
-        input = ctx.saved_tensors
+        input = ctx.saved_tensors[0]
         grad_input = grad_output.clone()
 
         # hu is an approximate func of df/du in linear formulation
@@ -364,7 +364,7 @@ class GLIFTorch(nn.Module):
                  time_wise=True,
                  layer_by_layer=True,
                  gate=[0.6, 0.8, 0.6],
-                 param=[0.25, 0.5, -1, 0.5]):
+                 param=[0.25, 0.5, -1, 0.5],**kwargs):
 
         # gate: [alpha, beta, gamma]
         # param: [tau, Vth, linear_decay, conduct]
@@ -424,13 +424,14 @@ class GLIFTorch(nn.Module):
                 ][0]
 
     def forward(self, x):
-        u = torch.zeros(x.shape[1:], device=x.device)
-        out = torch.zeros(x.shape, device=x.device)
+        x_t = x.reshape(self.T,-1)
+        u = torch.zeros(x_t.shape[1:], device=x.device)
+        out = torch.zeros(x_t.shape, device=x.device)
         for step in range(self.T):
             u, out[step] = self.extended_state_update(
                 u,
                 out[max(step - 1, 0)],
-                x[step],
+                x_t[step],
                 tau=self.tau[step].sigmoid()
                 if self.time_wise else self.tau.sigmoid(),
                 Vth=self.Vth[step].sigmoid()
@@ -441,7 +442,7 @@ class GLIFTorch(nn.Module):
                 if not self.static_param else self.conduct.sigmoid(),
                 reVth=self.reVth[step].sigmoid()
                 if self.time_wise else self.reVth.sigmoid())
-        return out
+        return out.reshape(x.shape)
 
     #
     # def state_update(self, u_t_n1, o_t_n1, W_mul_o_t_n1, tau):
@@ -462,6 +463,8 @@ class GLIFTorch(nn.Module):
         I_t1 = W_mul_o_t_n1 * (1 - be * (1 - conduct))
         u_t1_n1 = ((1 - al * (1 - tau)) * u_t_n1 * (1 - ga * o_t_n1.clone()) -
                    (1 - al) * leak) + I_t1 - (1 - ga) * reVth * o_t_n1.clone()
+        # print(u_t1_n1.shape)
+        # print(Vth)
         o_t1_n1 = SpikeAct_extended.apply(u_t1_n1 - Vth)
         return u_t1_n1, o_t1_n1
 
