@@ -29,7 +29,7 @@ from timm.optim import create_optimizer_v2, optimizer_kwargs
 from timm.scheduler import create_scheduler
 from timm.utils import ApexScaler, NativeScaler
 
-from braincog.base.node import *
+# from braincog.base.node import *
 from braincog.base.strategy.surrogate import *
 
 

@@ -255,16 +255,22 @@ class PLIFNode(BaseNode_Torch):
     """
 
     def __init__(self,
+                 step=4,
+                 layer_by_layer=True,
+                 mem_detach=False,
                  threshold=1.,
                  tau=2.,
-                 act_fun=AtanGrad,
+                 act_fun=Sigmoid_Grad,
                  *args,
                  **kwargs):
-        super().__init__(threshold, *args, **kwargs)
+        super().__init__(threshold=threshold,
+                         step=step,
+                         layer_by_layer=layer_by_layer,
+                         mem_detach=mem_detach)
         init_w = -math.log(tau - 1.)
         if isinstance(act_fun, str):
             act_fun = eval(act_fun)
-        self.act_fun = act_fun(alpha=2., requires_grad=True)
+        self.act_fun = act_fun()
         self.w = nn.Parameter(torch.as_tensor(init_w))
 
     def integral(self, inputs):
@@ -569,7 +575,7 @@ class ComplementaryLIFNeuron(nn.Module):
                  decay_input: bool = False,
                  v_threshold: float = 1.,
                  v_reset: float = None,
-                 surrogate_function: Callable = Rectangle(),
+                 surrogate_function=Rectangle(),
                  layer_by_layer=True,
                  **kwargs):
         super().__init__()
