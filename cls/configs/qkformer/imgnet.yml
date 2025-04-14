@@ -53,7 +53,7 @@ alpha: 4.0
 
 # train hyperparam
 amp: True
-batch_size: 32
+batch_size: 48
 val_batch_size: 48
 lr: 5e-4
 min_lr: 1e-5
@@ -69,7 +69,7 @@ workers: 4
 seed: 42
 
 # log dir
-output: "./"
+output: "/mnt/home/fenglinghao/log/SpikingTransformerBenchmark/cls/QKFormer"
 
 # device
 device: 0
