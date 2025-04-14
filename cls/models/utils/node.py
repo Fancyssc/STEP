@@ -578,6 +578,7 @@ class ComplementaryLIFNeuron(nn.Module):
     """
 
     def __init__(self,
+                 step=4,
                  tau: float = 2.,
                  decay_input: bool = False,
                  v_threshold: float = 1.,
@@ -588,6 +589,7 @@ class ComplementaryLIFNeuron(nn.Module):
         super().__init__()
 
         self.tau = tau
+        self.step=step
         self.decay_input = decay_input
         self.v_threshold = v_threshold
         self.v_reset = v_reset
@@ -595,7 +597,7 @@ class ComplementaryLIFNeuron(nn.Module):
             self.v = v_reset  # membrane potential
         else:
             self.v = 0.0
-        self.surrogate_function = surrogate_function
+        self.surrogate_function = surrogate_function.spiking_function
         self.lbl = layer_by_layer
 
         self.m = 0  # Complementary memory
@@ -618,13 +620,20 @@ class ComplementaryLIFNeuron(nn.Module):
 
     def forward_lbl(self, x_seq: torch.Tensor):
         assert x_seq.dim() > 1
+
+        #print(x_seq.shape)
+        if len(x_seq.shape) == 3:
+            x_seq_t = rearrange(x_seq,'(t b) n c -> t b n c',t=self.step)
+        elif len(x_seq.shape) == 4:
+            x_seq_t = rearrange(x_seq,'(t b) n h w -> t b n h w',t=self.step)
+        # print(x_seq_t.shape)
         # x_seq.shape = [T, *]
         spike_seq = []
         self.v_seq = []
-        for t in range(x_seq.shape[0]):
-            spike_seq.append(self.forward_timestep(x_seq[t]).unsqueeze(0))
+        for t in range(x_seq_t.shape[0]):
+            spike_seq.append(self.forward_timestep(x_seq_t[t]).unsqueeze(0))
             self.v_seq.append(self.v.unsqueeze(0))
-        spike_seq = torch.cat(spike_seq, 0)
+        spike_seq = torch.cat(spike_seq, 0).reshape(x_seq.shape)
         self.v_seq = torch.cat(self.v_seq, 0)
         return spike_seq
 
@@ -635,7 +644,7 @@ class ComplementaryLIFNeuron(nn.Module):
         self._reset(spike)
 
     def neuronal_fire(self):
-        return self.surrogate_function(self.v - self.v_threshold)
+        return self.surrogate_function(self.v - self.v_threshold,alpha=1.0)
 
     def _charging_v(self, x: torch.Tensor):
         if self.decay_input:
@@ -661,3 +670,11 @@ class ComplementaryLIFNeuron(nn.Module):
         else:
             # hard reset
             self.v = (1. - spike) * self.v + spike * self.v_reset
+
+    def n_reset(self):
+        if self.v_reset:
+            self.v = self.v_reset  # membrane potential
+        else:
+            self.v = 0.0
+
+        self.m = 0  # Complementary memory
