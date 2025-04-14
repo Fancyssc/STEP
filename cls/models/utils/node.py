@@ -295,22 +295,24 @@ class PSNTorch(nn.Module):
 
     def __init__(self,
                  threshold=1,
-                 step=10,
+                 step=4,
                  layer_by_layer=True,
                  mem_detach=True,
-                 act_func=AtanGrad):
+                 act_fun=Sigmoid_Grad,tau=2.0,**kwargs):
         super().__init__()
         assert layer_by_layer is True, "PSN MUST set layer_by_layer=True"
         self.fc = nn.Linear(step, step)
+        self.T = step
         nn.init.constant_(self.fc.bias, -1)
 
         # set alpha of Atan has no grad
-        self.act_func = act_func(alpha=2., requires_grad=False)
+        self.act_func = act_fun(alpha=2., requires_grad=False)
 
     def forward(self, x_seq: torch.Tensor):
-        # x_seq.shape = [T, N, *]
+        # x_seq.shape = [T*N, *]
+        x_seq_t = x_seq.reshape(self.T,-1)
         h_seq = torch.addmm(self.fc.bias.unsqueeze(1), self.fc.weight,
-                            x_seq.flatten(1))  # [T,T] @ [T,*]
+                            x_seq_t)  # [T,T] @ [T,*]
         spike = self.act_func(h_seq)
         return spike.view(x_seq.shape)
 
