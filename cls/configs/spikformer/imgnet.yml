@@ -1,5 +1,5 @@
 # dataset and model name
-data_dir: "/data0/datasets/ILSVRC2012"
+data_dir: /mnt/data/datasets/ILSVRC2012
 dataset: imagenet
 num_classes: 1000
 img_size: 224
@@ -51,7 +51,7 @@ alpha: 4.0
 
 # train hyperparam
 amp: True
-batch_size: 48
+batch_size: 8
 val_batch_size: 48
 lr: 5e-4
 min_lr: 1e-5
@@ -67,7 +67,8 @@ workers: 8
 seed: 42
 
 # log dir
-output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/"
+output: "/mnt/home/fenglinghao/log/SpikingTransformerBenchmark/cls/Spikformer"
+
 
 # device
 device: 0
