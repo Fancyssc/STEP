@@ -25,7 +25,8 @@ class SPS(BaseModule):
     :param: embed_dims: The dimension of the embedding.
     """
     def __init__(self, step=4, encode_type='direct', img_h=32, img_w=32, patch_size=4, in_channels=3,
-                 embed_dims=384, node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.0,layer_by_layer=True):
+                 embed_dims=384, node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.0,layer_by_layer=True,
+                 **kwargs):
         super().__init__(step=step, encode_type= encode_type,layer_by_layer=layer_by_layer)
 
         self.img_h = img_h
@@ -155,6 +156,8 @@ class MLP(BaseModule):
         self.hidden_features = int(in_features * mlp_ratio)
         self.mlp_drop = mlp_drop
 
+        self.id = nn.Identity()
+
         self.fc1_linear = nn.Linear(in_features, self.hidden_features)
         self.fc1_bn = nn.BatchNorm1d(self.hidden_features)
         self.fc1_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
@@ -164,6 +167,8 @@ class MLP(BaseModule):
         self.fc2_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
     def forward(self, x):
         self.reset()
+
+        x = self.id(x)
 
         TB, N, C = x.shape
         x = self.fc1_linear(x)
@@ -345,7 +350,7 @@ class vit_embed(BaseModule):
 
         self.pos_embed = nn.Parameter(torch.zeros(1, self.patch_nums, self.embed_dims))
         self.output_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
-                               layer_by_layer=layer_by_layer, mem_detach=False)
+                               layer_by_layer=layer_by_layer, mem_detach=False,**kwargs)
 
         # no cls token needed
 
@@ -365,7 +370,8 @@ class vit_embed(BaseModule):
 
 class conv2_embed(BaseModule):
     def __init__(self, step=4, encode_type='direct', img_h=32, img_w=32, patch_size=4, in_channels=3,
-                 embed_dims=384, node=LIFNode, tau=2.0, threshold=1.0, act_func=SigmoidGrad, alpha=4.0, layer_by_layer=True):
+                 embed_dims=384, node=LIFNode, tau=2.0, threshold=1.0, act_func=SigmoidGrad, alpha=4.0,
+                 layer_by_layer=True, **kwargs):
         super().__init__(step=step, encode_type=encode_type, layer_by_layer=layer_by_layer)
 
         self.img_h = img_h

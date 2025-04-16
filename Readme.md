@@ -203,6 +203,6 @@ We are currently developing content in the **Benchmark** that is used to **visua
 ```angular2html
 cd SpikingTransformerBenchmark 
 conda activate [env]
-python -m cls.vis.attn_map
+python -m cls.vis.gradcam_vis
 ```
 Please **make sure to follow the instructions exactly as shown above**, otherwise, errors may occur due to **path issues**.

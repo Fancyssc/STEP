@@ -356,7 +356,8 @@ def sdt_cifar(pretrained=False,**kwargs):
 """
 class vit_embed(BaseModule):
     def __init__(self, step=4, encode_type='direct', img_h=32, img_w=32, patch_size=4, in_channels=3,
-                 embed_dims=384, node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.0,layer_by_layer=True):
+                 embed_dims=384, node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.0,layer_by_layer=True,
+                 **kwargs):
         super().__init__(step=step, encode_type= encode_type,layer_by_layer=layer_by_layer)
 
 
@@ -406,7 +407,8 @@ class conv2_embed(BaseModule):
     :param: embed_dims: The dimension of the embedding.
     """
     def __init__(self, step=4, encode_type='direct', img_h=32, img_w=32, patch_size=4, in_channels=3,
-                 embed_dims=384, node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.,layer_by_layer=True):
+                 embed_dims=384, node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.,layer_by_layer=True,
+                 **kwargs):
         super().__init__(step=step, encode_type= encode_type,layer_by_layer=layer_by_layer)
 
         self.img_h = img_h
