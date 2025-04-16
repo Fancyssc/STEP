@@ -27,7 +27,8 @@ class SPS(BaseModule):
     :param: embed_dims: The dimension of the embedding.
     """
     def __init__(self, step=4, encode_type='direct', img_h=32, img_w=32, patch_size=4, in_channels=3,
-                 embed_dims=384, node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.,layer_by_layer=True):
+                 embed_dims=384, node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.,
+                 layer_by_layer=True,**kwargs):
         super().__init__(step=step, encode_type= encode_type,layer_by_layer=layer_by_layer)
 
         self.img_h = img_h
@@ -245,9 +246,9 @@ class SDT_Block_s(nn.Module):
 
 
 class SDTV1(BaseModule):
-    def __init__(self, step=4,img_size=32, patch_size=4, in_channels=3, num_classes=10,embed_dim=384,
+    def __init__(self, step=4,img_size=32, patch_size=4, in_channels=3, num_classes=10,embed_dim=384,sequence_length=1024,
                  attn_layer='SDSA',num_heads=12, mlp_ratio=4, scale=0.125, mlp_drop=0., attn_drop=0.,embed_layer='SPS',
-                 depths=2, node=LIFNode, tau=2.0, act_func=SigmoidGrad, threshold=1.0, alpha=4.0,layer_by_layer=True):
+                 depths=2, node=LIFNode, tau=2.0, act_func=SigmoidGrad, threshold=1.0, alpha=4.0,layer_by_layer=True,**kwargs):
         super().__init__(step=step, encode_type='direct',layer_by_layer=layer_by_layer)
         self.step = step  # time step
         self.num_classes = num_classes
@@ -263,7 +264,9 @@ class SDTV1(BaseModule):
                                                  embed_dims=embed_dim,
                                                  node=node, act_func=act_func, tau=tau,
                                                  threshold=threshold, alpha=alpha,
-                                                 layer_by_layer=layer_by_layer)
+                                                 layer_by_layer=layer_by_layer,
+                                                 sequence_length=sequence_length,
+                                                 **kwargs)
 
         block = nn.ModuleList([SDT_Block_s(step=step, embed_dim=embed_dim, attn_layer=attn_layer,
                                            num_heads=num_heads, mlp_ratio=mlp_ratio,
@@ -301,7 +304,11 @@ class SDTV1(BaseModule):
 
     def forward(self, x):
         self.reset()
-        x = self.encoder(x) # TB C H W
+        if len(x.shape) == 4:
+            x = self.encoder(x) # TB C H W
+            # sequence datasets
+        else:
+            x = (x.unsqueeze(0)).repeat(self.step, 1, 1, 1).flatten(0, 1)
         x = self.forward_features(x)
         x = self.head_lif(x)
         x = self.head(x.mean(0))
@@ -309,7 +316,7 @@ class SDTV1(BaseModule):
 
 #### models for static datasets
 @register_model
-def std_cifar(pretrained=False,**kwargs):
+def sdt_cifar(pretrained=False,**kwargs):
     model = SDTV1(
         step=kwargs.get('step', 4),
         img_size=kwargs.get('img_size', 32),
@@ -331,7 +338,10 @@ def std_cifar(pretrained=False,**kwargs):
 
         #for meta transforemr
         embed_layer=kwargs.get('embed_layer','SPS'),
-        attn_layer=kwargs.get('attn_layer','SDSA')
+        attn_layer=kwargs.get('attn_layer','SDSA'),
+
+        #for sequential
+        sequence_length=kwargs.get('sequence_length', 1024),
     )
     model.default_cfg = _cfg()
     return model
@@ -539,3 +549,95 @@ class random_sdsa(BaseModule):
 
         x = x + identity
         return x
+
+
+
+class sequential_embed(BaseModule):
+    def __init__(self, step=4, encode_type='direct', sequence_length=1024, in_channels=3,
+                 embed_dims=384, node=LIFNode, tau=2.0, threshold=1.0, act_func=SigmoidGrad, alpha=4.0,
+                 layer_by_layer=True, **kwargs):
+
+        super(sequential_embed, self).__init__(step=step, encode_type=encode_type, layer_by_layer=layer_by_layer)
+
+        self.in_channels = in_channels
+        self.sequence_length = sequence_length
+        self.embed_dims = embed_dims
+        self.out_length = 64
+
+        if sequence_length >= 1024:
+            downsample_rates = [2, 2, 2, 2]  # 这些是步长，不是指数
+        else:
+            downsample_rates = [1, 2, 2, 2]
+        # 按照要求设置每层的通道数: embed_dim//8, embed_dim//4, embed_dim//2, embed_dim
+        channels = [
+            in_channels,
+            embed_dims // 8,
+            embed_dims // 4,
+            embed_dims // 2,
+            embed_dims
+        ]
+
+        self.layers = nn.ModuleList()
+
+        current_length = sequence_length
+
+        for i in range(4):
+            stride = downsample_rates[i]
+            kernel_size = 5
+            target_output_size = current_length // stride
+            padding = self._calculate_padding(current_length, kernel_size, stride, target_output_size)
+
+            if i != 3:
+                layer = nn.Sequential(
+                    nn.Conv1d(channels[i], channels[i + 1], kernel_size=kernel_size,
+                              stride=stride, padding=padding),
+                    nn.BatchNorm1d(channels[i + 1]),
+                    node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                         layer_by_layer=layer_by_layer, mem_detach=False)
+                )
+
+            else:
+                layer = nn.Sequential(
+                    nn.Conv1d(channels[i], channels[i + 1], kernel_size=kernel_size,
+                              stride=stride, padding=padding),
+                    nn.BatchNorm1d(channels[i + 1]),
+                )
+
+            self.layers.append(layer)
+            current_length = target_output_size
+
+        self.fine_tuning_layer = nn.AdaptiveAvgPool1d(self.out_length)
+
+        self.proj_lif3 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                         layer_by_layer=layer_by_layer, mem_detach=False)
+        # 添加可学习的相对位置编码
+        self.pe_conv = nn.Conv1d(
+            embed_dims,
+            embed_dims,
+            kernel_size=3,
+            stride=1,
+            padding=1,
+            groups=1,
+            bias=True
+        )
+        self.pe_bn = nn.BatchNorm1d(embed_dims)
+
+    def _calculate_padding(self, input_size, kernel_size, stride, target_size):
+        padding = ((target_size - 1) * stride + kernel_size - input_size) // 2
+        return max(0, int(padding))
+
+    def forward(self, x):
+        for layer in self.layers:
+            x = layer(x)
+
+        x = self.fine_tuning_layer(x)
+
+        x_feat = x
+        x = self.proj_lif3(x)
+
+        x = self.pe_conv(x)
+        x = self.pe_bn(x)
+
+        x = x + x_feat # T B C N
+
+        return x.reshape(*x.shape[:-1], int(self.out_length ** 0.5), int(self.out_length ** 0.5)).contiguous() # T B C H W

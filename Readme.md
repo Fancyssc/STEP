@@ -10,7 +10,7 @@ Our code repository will remain updated. If you have any questions, please feel 
 ### Implemented & To-implement Models
 The listed results display the performance of models on different datasets. The results are based on the original papers and the corresponding datasets. The results are updated regularly. If you have any questions, please feel free to contact us.
 
-To emphasize, if no special note, the default size of model is ```3-384``` for CIFAR10/100 and ```8-768``` for ImageNet-1K. The default step is ```4``` for both datasets.
+To emphasize, if no special note, the default size of model is ```4-384``` for CIFAR10/100 and ```8-768``` for ImageNet-1K. The default step is ```4``` for both datasets.
 The default size of model is ```2-512``` for CIFAR10-DVS and N-Cal101. The default step is ```10``` for both datasets.
 
 |                Model                |                                                                                  Pub. Info.                                                                                  |             CIFAR10/100             |     ImageNet-1K      |         CIFAR10-DVS         | N-Cal101 |
@@ -79,6 +79,44 @@ Other hyper-param setting are following the original paper.
 |                   |            |          ||       |
 | Spikingresformer  |    128     | CIFAR100 | 4 |  600  |     78.29     | Transfer Learning Used Originally |
 |                   |            |          ||       |
+
+#### Sequential Image Classification
+
+|   Model    | Batch-Size | Dataset | Step | Epoch | Result(Acc@1) |               supp.               |
+|:----------:|:----------:|:-------:|:-------:|:-----:|:-------------:|:---------------------------------:|
+| Spikformer |    128     | sMNIST  | 4 |  400  |     98.84     |                 -                 |
+| Spikformer |    128     | psMNIST | 4 |  400  |     97.97     |                 -                 |
+| Spikformer |    128     | sCIFAR10| 4 |  400  |     84.26     |                 -                 |
+|            |            |          ||       |
+|    SDT     |    128     | sMNIST  | 4 |  400  |     98.77     |                 -                 |
+|    SDT     |    128     | psMNIST | 4 |  400  |     97.80     |                 -                 |
+|    SDT     |    128     | sCIFAR10| 4 |  400  |     82.31     |                 -                 |
+|            |            |          ||       |
+| Spikformer + SEMM |    128     | sMNIST  | 4 |  400  |     99.33     |                 -                 |
+| Spikformer + SEMM |    128     | psMNIST | 4 |  400  |     98.46     |                 -                 |
+| Spikformer + SEMM |    128     | sCIFAR10| 4 |  400  |     85.61     |                 -                 |
+
+
+#### Meta-Transformer Test
+|            Model            | Batch-Size |       Node        | Step | Seed | Result(Acc@1) |          supp.          |
+|:---------------------------:|:----------:|:-----------------:|:-------:|:----:|:-------------:|:-----------------------:|
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     94.96     |       random_attn       |
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     78.21     |        vit_embed        |
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     91.92     |       conv2_embed       |
+|                             |            |                   ||      |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     95.51     |       random_attn       |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     82.17     |        vit_embed        |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     93.03     |       conv2_embed       |
+|                             |            |                   ||      |
+|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     95.57     |       random_attn       |
+|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     89.24     |        vit_embed        |
+|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     93.33     |       conv2_embed       |
+|                             |            |                   ||      |
+|             ViT             |    128     |     Braincog      | 4 |  42  |     96.41     |       random_attn       |
+|             ViT             |    128     |     Braincog      | 4 |  42  |     90.89     |        vit_embed        |
+|             ViT             |    128     |     Braincog      | 4 |  42  |     95.0      |       conv2_embed       |
+|             ViT             |    128     |     Braincog      | 4 |  42  |     88.46     | vit_embed & random_attn |
+
 #### ImageNet-1K
 to be updated
 

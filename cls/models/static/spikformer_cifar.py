@@ -202,8 +202,8 @@ class Spikformer(BaseModule):
     def __init__(self,
                  step=4, img_size=32, patch_size=4, in_channels=3, num_classes=10,attn_scale=0.125,
                  embed_dim=384, num_heads=12, mlp_ratio=4, attn_drop=0., embed_layer='SPS', attn_layer='SSA',
-                 depths=4, node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.,layer_by_layer=True
-                 ):
+                 depths=4, node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.,layer_by_layer=True,
+                 **kwargs):
         super().__init__(step=step, encode_type='direct',layer_by_layer=layer_by_layer)
         self.T = step  # time step
         self.num_classes = num_classes
@@ -220,7 +220,8 @@ class Spikformer(BaseModule):
                                  embed_dims=embed_dim,
                                  node=node,act_func=act_func,tau=tau,
                                  threshold=threshold,alpha=alpha,
-                                 layer_by_layer=layer_by_layer)
+                                 layer_by_layer=layer_by_layer,
+                                 **kwargs)
         # dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depths)]  # stochastic depth decay rule
 
 
@@ -271,9 +272,13 @@ class Spikformer(BaseModule):
     def forward(self, x):
 
         self.reset()
-        # lbl=True: TB C H W
-        # lbl=False: T B C H W
-        x = self.encoder(x)
+
+        if len(x.shape) == 4:
+            x = self.encoder(x)
+
+        # sequence datasets
+        else:
+            x = (x.unsqueeze(0)).repeat(self.T, 1, 1, 1).flatten(0, 1)
 
         x = self.forward_features(x)
         x = self.head(x.mean(0))
@@ -302,7 +307,9 @@ def spikformer_cifar(pretrained=False,**kwargs):
         alpha=kwargs.get('alpha',4.0),
         ### for meta transformer
         embed_layer=kwargs.get('embed_layer', 'SPS'),
-        attn_layer=kwargs.get('attn_layer','SSA')
+        attn_layer=kwargs.get('attn_layer','SSA'),
+        ### for sequential datasets
+        sequence_length=kwargs.get('sequence_length', None)
     )
     model.default_cfg = _cfg()
     return model
@@ -311,6 +318,50 @@ def spikformer_cifar(pretrained=False,**kwargs):
 """
     classes for meta spiking transformer
 """
+
+
+class vit_embed(BaseModule):
+    def __init__(self, step=4, encode_type='direct', img_h=32, img_w=32, patch_size=4, in_channels=3,
+                 embed_dims=384, node=LIFNode, tau=2.0, threshold=1.0, act_func=SigmoidGrad, alpha=4.0,
+                 layer_by_layer=True,**kwargs):
+        super().__init__(step=step, encode_type=encode_type, layer_by_layer=layer_by_layer)
+
+        self.img_h = img_h
+        self.img_w = img_w
+        self.patch_size = patch_size
+        self.patch_nums = self.img_h // self.patch_size * self.img_w // self.patch_size
+        self.in_channels = in_channels
+        self.embed_dims = embed_dims
+        self.layer_by_layer = layer_by_layer
+
+        self.proj_conv = nn.Conv2d(
+            in_channels=in_channels,
+            out_channels=embed_dims,
+            kernel_size=patch_size,
+            stride=patch_size,
+        )
+        self.proj_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                             layer_by_layer=layer_by_layer, mem_detach=False)
+
+        self.pos_embed = nn.Parameter(torch.zeros(1, self.patch_nums, self.embed_dims))
+        self.output_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                               layer_by_layer=layer_by_layer, mem_detach=False)
+
+        # no cls token needed
+
+    def forward(self, x):
+        self.reset()
+
+        x = self.proj_conv(x)
+        x = self.proj_lif(x)  # TB C H//4 W//4
+
+        # x = x + self.pos_embed
+        x = x.flatten(-2, -1).transpose(-2, -1)
+
+        x = x + self.pos_embed  # TB N C
+        # x = self.output_lif(x)
+
+        return x
 
 class conv2_embed(BaseModule):
     def __init__(self, step=4, encode_type='direct', img_h=32, img_w=32, patch_size=4, in_channels=3,
@@ -327,17 +378,20 @@ class conv2_embed(BaseModule):
 
         self.proj_conv = nn.Conv2d(in_channels, embed_dims // 4, kernel_size=3, stride=1, padding=1, bias=False)
         self.proj_bn = nn.BatchNorm2d(embed_dims // 4)
-        self.proj_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
+        self.proj_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                             layer_by_layer=layer_by_layer, mem_detach=False)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
 
         self.proj_conv1 = nn.Conv2d(embed_dims // 4, embed_dims, kernel_size=3, stride=1, padding=1, bias=False)
         self.proj_bn1 = nn.BatchNorm2d(embed_dims)
-        self.proj_lif1 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
+        self.proj_lif1 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                              layer_by_layer=layer_by_layer, mem_detach=False)
         self.maxpool1 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
 
         self.rpe_conv = nn.Conv2d(embed_dims, embed_dims, kernel_size=3, stride=1, padding=1, bias=False)
         self.rpe_bn = nn.BatchNorm2d(embed_dims)
-        self.rpe_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
+        self.rpe_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                            layer_by_layer=layer_by_layer, mem_detach=False)
 
     def forward(self, x):
         self.reset()
@@ -367,7 +421,8 @@ class conv2_embed(BaseModule):
         return x  # TB,N,C
 
 class random_ssa(BaseModule):
-    def __init__(self,embed_dim, step=4,encode_type='direct',num_heads=12,attn_scale=0.125,attn_drop=0.,node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.0,layer_by_layer=True):
+    def __init__(self,embed_dim, step=4,encode_type='direct',num_heads=12,attn_scale=0.125,attn_drop=0.,node=LIFNode,
+                 tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.0,layer_by_layer=True):
         super().__init__(step=step, encode_type=encode_type,layer_by_layer=layer_by_layer)
         self.embed_dim = embed_dim
         self.num_heads = num_heads
@@ -391,13 +446,16 @@ class random_ssa(BaseModule):
 
         self.v_linear = nn.Linear(embed_dim, embed_dim)
         self.v_bn = nn.BatchNorm1d(embed_dim)
-        self.v_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+        self.v_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                          layer_by_layer=layer_by_layer, mem_detach=False)
 
-        self.attn_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=0.5, layer_by_layer=True, mem_detach=False) #special v_thres
+        self.attn_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=0.5,
+                             layer_by_layer=True, mem_detach=False) #special v_thres
 
         self.proj_linear = nn.Linear(embed_dim, embed_dim)
         self.proj_bn = nn.BatchNorm1d(embed_dim)
-        self.proj_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+        self.proj_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                             layer_by_layer=layer_by_layer, mem_detach=False)
 
     def forward(self, x):
         self.reset()
@@ -428,3 +486,88 @@ class random_ssa(BaseModule):
         x = self.proj_lif(self.proj_bn(self.proj_linear(x).transpose(-1, -2)).transpose(-1, -2)).reshape(TB, N, C).contiguous()
 
         return x # TB N C
+
+
+class sequential_embed(BaseModule):
+    def __init__(self, step=4, encode_type='direct', sequence_length=1024, in_channels=3,
+                 embed_dims=384, node=LIFNode, tau=2.0, threshold=1.0, act_func=SigmoidGrad, alpha=4.0,
+                 layer_by_layer=True, **kwargs):
+
+        super(sequential_embed, self).__init__(step=step, encode_type=encode_type, layer_by_layer=layer_by_layer)
+
+        self.in_channels = in_channels
+        self.sequence_length = sequence_length
+        self.embed_dims = embed_dims
+        self.out_length = 64
+
+        if sequence_length >= 1024:
+            downsample_rates = [2, 2, 2, 2]  # 这些是步长，不是指数
+        else:
+            downsample_rates = [1, 2, 2, 2]
+        # 按照要求设置每层的通道数: embed_dim//8, embed_dim//4, embed_dim//2, embed_dim
+        channels = [
+            in_channels,
+            embed_dims // 8,
+            embed_dims // 4,
+            embed_dims // 2,
+            embed_dims
+        ]
+
+        self.layers = nn.ModuleList()
+
+        current_length = sequence_length
+
+        for i in range(4):
+            stride = downsample_rates[i]
+            kernel_size = 5
+            target_output_size = current_length // stride
+            padding = self._calculate_padding(current_length, kernel_size, stride, target_output_size)
+
+            layer = nn.Sequential(
+                nn.Conv1d(channels[i], channels[i + 1], kernel_size=kernel_size,
+                          stride=stride, padding=padding),
+                nn.BatchNorm1d(channels[i + 1]),
+                node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                     layer_by_layer=layer_by_layer, mem_detach=False)
+            )
+            self.layers.append(layer)
+
+            current_length = target_output_size
+
+        if current_length != self.out_length:
+            self.fine_tuning_layer = nn.Sequential(
+                nn.AdaptiveAvgPool1d(self.out_length)
+            )
+        else:
+            self.fine_tuning_layer = nn.Identity()
+
+        # 添加可学习的相对位置编码
+        self.pe_conv = nn.Conv1d(
+            embed_dims,
+            embed_dims,
+            kernel_size=3,
+            stride=1,
+            padding=1,
+            groups=1,
+            bias=True
+        )
+        self.pe_bn = nn.BatchNorm1d(embed_dims)
+
+    def _calculate_padding(self, input_size, kernel_size, stride, target_size):
+        padding = ((target_size - 1) * stride + kernel_size - input_size) // 2
+        return max(0, int(padding))
+
+    def forward(self, x):
+        for layer in self.layers:
+            x = layer(x)
+
+        x = self.fine_tuning_layer(x)
+
+        x_feat = x
+
+        x = self.pe_conv(x)
+        x = self.pe_bn(x)
+
+        x = x + x_feat
+
+        return x.permute(0, 2, 1)

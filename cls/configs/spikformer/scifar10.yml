@@ -1,8 +1,9 @@
 # dataset
 data_dir: "/data/datasets/CIFAR10/"
-dataset: torch/cifar10
+dataset: scifar
 num_classes: 10
 img_size: 32
+sequence_length: 1024
 
 #data augmentation
 mean:
@@ -46,7 +47,7 @@ attn_drop: 0.0
 depths: 4
 
 #meta transformer layer
-embed_layer: 'vit_embed'
+embed_layer: 'SP'
 attn_layer: 'SSA'
 
 
@@ -75,7 +76,7 @@ seed: 42
 log_interval: 200
 
 # log dir
-output: "/home/shensicheng/log/SpikingTransformerBenchmark/meta-test/Spikformer"
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/test/Spikformer"
 
 # device
-device: 1
+device: 0

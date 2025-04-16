@@ -52,6 +52,12 @@ act_function: SigmoidGrad
 node_type: LIFNode
 alpha: 4.0
 
+
+#meta transformer layer
+embed_layer: 'vit_embed'
+attn_layer: 'SSA'
+
+
 # train hyperparam
 amp: True
 batch_size: 128
@@ -70,7 +76,7 @@ seed: 42
 log_interval: 200
 
 # log dir
-output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/Spikf_SEMM"
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/meta-test/Spikf_SEMM"
 
 # device
-device: 2
+device: 0

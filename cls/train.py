@@ -6,6 +6,7 @@ import yaml
 import logging
 import os
 
+from mpmath.libmp import agm_fixed
 from spikingjelly.clock_driven.examples.PPO import device
 
 from models.utils.node import *
@@ -18,6 +19,7 @@ from spikingjelly.clock_driven import functional
 import torch.nn as nn
 import torchvision.utils
 from torch.nn.parallel import DistributedDataParallel as NativeDDP
+from torch.utils.data import Dataset
 
 from timm.data import create_dataset, resolve_data_config, Mixup, FastCollateMixup, AugMixDataset
 from data.loader import create_loader
@@ -29,7 +31,6 @@ from timm.optim import create_optimizer_v2, optimizer_kwargs
 from timm.scheduler import create_scheduler
 from timm.utils import ApexScaler, NativeScaler
 
-from braincog.base.node import *
 from braincog.base.strategy.surrogate import *
 
 from models.static.spikformer_cifar import *
@@ -112,6 +113,10 @@ parser.add_argument('--attn-drop',type=float, default=None, metavar='N',
                     help='attention drop rate')
 parser.add_argument('--mlp-drop',type=float, default=0.0, metavar='N',
                     help='mlp drop rate')
+
+
+# for sequential datasets
+parser.add_argument('--sequential-length',type=int, default=False,metavar='N')
 
 
 # for meta-transformer
@@ -346,6 +351,14 @@ parser.add_argument('--device',type=int, default=1,
                     help='Device to use for training, e.g., "cuda:0" or "cpu" (default: cuda:0)')
 
 
+seq_dataset_map= {
+    "scifar": "torch/cifar10",
+    "smnist": "mnist",
+    "psmnist": "mnist",
+}
+
+
+
 # log color
 def color_text(text, color_code):
     return f"\033[{color_code}m{text}\033[0m"
@@ -440,7 +453,7 @@ def main():
     # model params
     all_args = vars(args)
     create_model_keys = [
-        'model', 'step', 'img_size', 'patch_size', 'in_channels',
+        'model', 'step', 'img_size', 'patch_size', 'in_channels', 'sequence_length',
         'num_classes', 'embed_dim', 'num_heads', 'mlp_ratio', 'attn_scale',
         'mlp_drop', 'attn_drop', 'depths', 'tau', 'threshold', 'act_func','alpha',
     ]
@@ -475,9 +488,9 @@ def main():
         assert hasattr(model, 'num_classes'), 'Model must have `num_classes` attr if not set on cmd line/config.'
         args.num_classes = model.num_classes  # FIXME handle model default vs config num_classes more elegantly
 
-    # if args.local_rank == 0:
-    #     _logger.info(
-    #         f'Model {safe_model_name(args.model)} created, param count:{sum([m.numel() for m in model.parameters()])}')
+    if args.local_rank == 0:
+        _logger.info(
+            f'Model {safe_model_name(args.model)} created, param count:{sum([m.numel() for m in model.parameters()])}')
 
     data_config = resolve_data_config(vars(args), model=model, verbose=args.local_rank == 0)
 
@@ -581,14 +594,17 @@ def main():
     if args.local_rank == 0:
         _logger.info('Scheduled epochs: {}'.format(num_epochs))
 
+        dataset_to_load = seq_dataset_map.get(args.dataset, args.dataset)
+
         dataset_train = create_dataset(
-            args.dataset,
+            dataset_to_load,
             root=args.data_dir, split=args.train_split, is_training=True,
             batch_size=args.batch_size, repeats=args.epoch_repeats)
 
         dataset_eval = create_dataset(
-            args.dataset, root=args.data_dir, split=args.val_split, is_training=False, batch_size=args.batch_size)
-
+            dataset_to_load,
+            root=args.data_dir, split=args.val_split,
+            is_training=False, batch_size=args.batch_size)
 
         # setup mixup / cutmix
         collate_fn = None
@@ -777,6 +793,61 @@ def train_one_epoch(
     last_idx = len(loader) - 1
     num_updates = epoch * len(loader)
     for batch_idx, (input, target) in enumerate(loader):
+
+        # for mnist -> reshape to 1 input channel
+        if 'mnist' in args.dataset.lower() or 'smnist' in args.dataset.lower():
+            weights = torch.tensor([0.299, 0.587, 0.114], device=input.device).view(1, 3, 1, 1)
+            input = (input * weights).sum(dim=1, keepdim=True)  # transfer to grayscale
+
+        if 'smnist' == args.dataset.lower():
+            batch_size, channels, height, width = input.shape
+
+            input = input.view(batch_size, channels, -1)  # [B, 1, 784]
+
+        elif 'psmnist' == args.dataset.lower():
+            batch_size, channels, height, width = input.shape
+            flat_input = input.view(batch_size, channels, -1)  # [B, 1, 784]
+
+            # permute vector
+            if not hasattr(args, 'permutation_loaded'):
+
+                perm_path = "./data/permutation.pt"
+
+                if os.path.exists(perm_path):
+                    # loaded existed perm
+                    perm = torch.load(perm_path)
+                    if batch_idx == 0:
+                        _logger.info(f'Loaded permutation from {perm_path}')
+
+                else:
+                    perm = torch.randperm(784)
+
+                    # os.makedirs(perm_path, exist_ok=True)
+
+                    # save perm
+                    torch.save(perm, perm_path)
+                    if batch_idx ==0:
+                        _logger.info(f'Created and saved new permutation to {perm_path}')
+
+            permutation = perm.to(input.device)
+
+            permuted_input = flat_input[:, :, permutation]
+            input = permuted_input  # [B, 784, 1]
+
+        if 'scifar' in args.dataset.lower():
+            batch_size, channels, height, width = input.shape
+
+            if args.in_channels == 1:
+                r = input[:, 0, :].unsqueeze(2)  # [B, 1024, 1]
+                g = input[:, 1, :].unsqueeze(2)  # [B, 1024, 1]
+                b = input[:, 2, :].unsqueeze(2)  # [B, 1024, 1]
+
+                # concat R G B channel
+                input = torch.cat([r, g, b], dim=1).permute(0, 2, 1)  # [B, 1, 3072 ]
+
+            else:
+                input = input.reshape(batch_size, channels, height * width)  # [B, 3, 1024]
+
         last_batch = batch_idx == last_idx
         data_time_m.update(time.time() - end)
         if not args.prefetcher:
@@ -897,6 +968,62 @@ def validate(model, loader, loss_fn, args, amp_autocast=suppress, log_suffix='')
     last_idx = len(loader) - 1
     with torch.no_grad():
         for batch_idx, (input, target) in enumerate(loader):
+
+            # for mnist -> reshape to 1 input channel
+            if 'mnist' in args.dataset.lower() or 'smnist' in args.dataset.lower():
+                weights = torch.tensor([0.299, 0.587, 0.114], device=input.device).view(1, 3, 1, 1)
+                input = (input * weights).sum(dim=1, keepdim=True)  # transfer to grayscale
+
+            if 'smnist' == args.dataset.lower():
+                batch_size, channels, height, width = input.shape
+
+                input = input.view(batch_size, channels, -1)  # [B, 1, 784]
+
+            elif 'psmnist' == args.dataset.lower():
+                batch_size, channels, height, width = input.shape
+                flat_input = input.view(batch_size, channels, -1)  # [B, 1, 784]
+
+                # permute vector
+                if not hasattr(args, 'permutation_loaded'):
+
+                    perm_path = "./data/permutation.pt"
+
+                    if os.path.exists(perm_path):
+                        # loaded existed perm
+                        perm = torch.load(perm_path)
+                        if batch_idx == 0:
+                            _logger.info(f'Loaded permutation from {perm_path}')
+
+                    else:
+                        perm = torch.randperm(784)
+
+                        # os.makedirs(perm_path, exist_ok=True)
+
+                        # save perm
+                        torch.save(perm, perm_path)
+                        if batch_idx == 0:
+                            _logger.info(f'Created and saved new permutation to {perm_path}')
+
+                permutation = perm.to(input.device)
+
+                permuted_input = flat_input[:, :, permutation]
+                input = permuted_input  # [B, 784, 1]
+
+            if 'scifar' in args.dataset.lower():
+                batch_size, channels, height, width = input.shape
+
+                if args.in_channels == 1:
+                    r = input[:, 0, :].unsqueeze(2)  # [B, 1024, 1]
+                    g = input[:, 1, :].unsqueeze(2)  # [B, 1024, 1]
+                    b = input[:, 2, :].unsqueeze(2)  # [B, 1024, 1]
+
+                    # concat R G B channel
+                    input = torch.cat([r, g, b], dim=1).permute(0, 2, 1)  # [B, 1, 3072 ]
+
+                else:
+                    input = input.reshape(batch_size, channels, height * width)  # [B, 3, 1024]
+
+
             last_batch = batch_idx == last_idx
             if not args.prefetcher:
                 input = input.cuda()

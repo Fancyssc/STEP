@@ -1,18 +1,19 @@
 # dataset
 data_dir: "/data/datasets/CIFAR10/"
-dataset: torch/cifar10
+dataset: scifar
 num_classes: 10
 img_size: 32
+sequence_length: 1024
 
 #data augmentation
 mean:
-    - 0.4914
-    - 0.4822
-    - 0.4465
+    - 0.5071
+    - 0.4867
+    - 0.4408
 std:
-    - 0.2470
-    - 0.2435
-    - 0.2616
+    - 0.2675
+    - 0.2565
+    - 0.2761
 crop_pct: 1.0
 scale:
     - 1.0
@@ -33,22 +34,17 @@ reprob: 0.25
 remode: const
 
 # model structure
-model: "spikformer_cifar"
+model: "spikf_semm_cifar"
 step: 4
 patch_size: 4
 in_channels: 3
 embed_dim: 384
-num_heads: 12
+num_heads: 8
 mlp_ratio: 4
 attn_scale: 0.125
 mlp_drop: 0.0
 attn_drop: 0.0
 depths: 4
-
-#meta transformer layer
-embed_layer: 'vit_embed'
-attn_layer: 'SSA'
-
 
 # node
 tau: 2.0
@@ -57,11 +53,17 @@ act_function: SigmoidGrad
 node_type: LIFNode
 alpha: 4.0
 
+
+#meta transformer layer
+embed_layer: 'sequential_embed'
+attn_layer: 'SSA'
+
+
 # train hyperparam
 amp: True
 batch_size: 128
 val_batch_size: 128
-lr: 5e-4
+lr: 1e-3
 min_lr: 1e-5
 sched: cosine
 weight_decay: 6e-2
@@ -70,12 +72,12 @@ warmup_epochs: 20
 warmup_lr: 0.00001
 opt: adamw
 smoothing: 0.1
-workers: 16
+workers: 8
 seed: 42
 log_interval: 200
 
 # log dir
-output: "/home/shensicheng/log/SpikingTransformerBenchmark/meta-test/Spikformer"
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/test/Spikf_SEMM"
 
 # device
-device: 1
+device: 5

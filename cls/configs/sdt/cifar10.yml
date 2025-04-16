@@ -34,7 +34,7 @@ model-ema: False
 model-ema-decay: 0.9998
 
 #model structure
-model: "std_cifar"
+model: "sdt_cifar"
 step: 4
 patch_size: 4
 in_channels: 3

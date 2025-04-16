@@ -1,34 +1,31 @@
 # dataset
-data_dir: "/data/datasets/CIFAR10/"
-dataset: torch/cifar10
+data_dir: "/home/shensicheng/datasets/MNIST"
+dataset: mnist
 num_classes: 10
-img_size: 32
+img_size: 28
 
 #data augmentation
 mean:
-    - 0.4914
-    - 0.4822
-    - 0.4465
+    - 0.1307
+    - 0.1307
+    - 0.1307
 std:
-    - 0.2470
-    - 0.2435
-    - 0.2616
+    - 0.3081
+    - 0.3081
+    - 0.3081
 crop_pct: 1.0
 scale:
     - 1.0
     - 1.0
-ratio: [1.0,1.0]
+#mixup: 0.5
+#mixup_off_epoch: 100
+#mixup_prob: 1.0
+#mixup_mode: batch
 color_jitter: 0.
+ratio: [1.0,1.0]
 interpolation: bicubic
 train_interpolation: bicubic
-aa: rand-m9-n1-mstd0.4-inc1
-epochs: 400   #epochs
-mixup: 0.5
-mixup_off_epoch: 200
-mixup_prob: 1.0
-mixup_mode: batch
-mixup_switch_prob: 0.5
-cutmix: 0.0
+epochs: 200   #epochs
 reprob: 0.25
 remode: const
 
@@ -36,7 +33,7 @@ remode: const
 model: "spikformer_cifar"
 step: 4
 patch_size: 4
-in_channels: 3
+in_channels: 1
 embed_dim: 384
 num_heads: 12
 mlp_ratio: 4
@@ -46,7 +43,7 @@ attn_drop: 0.0
 depths: 4
 
 #meta transformer layer
-embed_layer: 'vit_embed'
+embed_layer: 'SPS'
 attn_layer: 'SSA'
 
 
@@ -59,8 +56,8 @@ alpha: 4.0
 
 # train hyperparam
 amp: True
-batch_size: 128
-val_batch_size: 128
+batch_size: 256
+val_batch_size: 256
 lr: 5e-4
 min_lr: 1e-5
 sched: cosine
@@ -75,7 +72,7 @@ seed: 42
 log_interval: 200
 
 # log dir
-output: "/home/shensicheng/log/SpikingTransformerBenchmark/meta-test/Spikformer"
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/Spikformer"
 
 # device
-device: 1
+device: 3
