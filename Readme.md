@@ -98,6 +98,12 @@ Other hyper-param setting are following the original paper.
 
 
 #### Meta-Transformer Test
+ **random_attn**: Query and Key are randomly initialized and not updated. 
+
+ **vit_embed**: Using vanilla ViT embedding method and learnable position encoding.
+
+ **conv2_embed**: Reduce the num. of conv layers from 4 to 2 in SPS of Spiking Transformer.
+
 |            Model            | Batch-Size |       Node        | Step | Seed | Result(Acc@1) |          supp.          |
 |:---------------------------:|:----------:|:-----------------:|:-------:|:----:|:-------------:|:-----------------------:|
 |         Spikformer          |    128     |     Braincog      | 4 |  42  |     94.96     |       random_attn       |
