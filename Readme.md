@@ -2,7 +2,7 @@
 
 This repository, built upon the **[BrainCog](https://github.com/BrainCog-X/Brain-Cog)** framework, serves to reproduce existing open-source Spiking Transformer models and provide standardized evaluation results across multiple tasks.
 
--Classification: [Here](cls/Readme.md)
+- Classification: [Here](cls/Readme.md)
 - Segmentation: [Here](seg/Readme.md)
 
 ## Features
