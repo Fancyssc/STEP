@@ -17,18 +17,18 @@ This repository, built upon the **[BrainCog](https://github.com/BrainCog-X/Brain
 ```plaintext
 Spiking-Transformer-Benchmark/
 ├── cls/               # Classification submodule
-│   ├── README.md      # Instructions and examples for classification
-│   ├── configs/       # Configuration files
-│   ├── datasets/      # Dataset loading scripts
+│   ├── README.md      
+│   ├── configs/     
+│   ├── datasets/      
 │   └── ...
-├── seg/               # Segmentation submodule
-│   ├── README.md      # Instructions and examples for segmentation
-│   ├── configs/       # Configuration files
-│   ├── mmseg      # Dataset loading scripts
+├── seg/               # Segmentation submodule 
+│   ├── README.md      
+│   ├── configs/       
+│   ├── mmseg      
 │   └── ...
 ├── det/               # Object detection submodule (to be added)
-│   └── README.md      # Placeholder for detection documentation
-└── README.md          # Project overview
+│   └── README.md      
+└── README.md          
 ```
 
 ## Installation
