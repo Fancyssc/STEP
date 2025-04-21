@@ -62,6 +62,7 @@ from models.static import (
     sglformer_cifar,
     spikingresformer_cifar,
     swformer_cifar,
+    sdt_imagenet,
 )
 from models.dvs import tim
 
@@ -1079,14 +1080,14 @@ def main():
             # Apex DDP preferred unless native amp is activated
             if args.local_rank == 0:
                 _logger.info("Using NVIDIA APEX DistributedDataParallel.")
-            model = ApexDDP(model, delay_allreduce=True, find_unsed_parameters=False)
+            model = ApexDDP(model, delay_allreduce=True, find_unsed_parameters=True)
         else:
             if args.local_rank == 0:
                 _logger.info("Using native Torch DistributedDataParallel.")
 
             print(f"LOCAL RANK: {args.local_rank}")
             model = NativeDDP(
-                model, device_ids=[args.local_rank], find_unused_parameters=False
+                model, device_ids=[args.local_rank], find_unused_parameters=True
             )  # can use device str in Torch >= 1.1
         # NOTE: EMA model does not need to be wrapped by DDP
 

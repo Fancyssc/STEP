@@ -57,8 +57,8 @@ alpha: 4.0
 # train hyperparam
 amp: False
 channels-last: False
-batch_size: 48
-val_batch_size: 48
+batch_size: 2  #48
+val_batch_size: 2  #48
 lr: 0.0015
 min_lr: 1.5e-5
 sched: cosine
@@ -76,4 +76,4 @@ log_interval: 100
 device: 0
 
 # log dir
-output: "/mnt/home/fenglinghao/log/SpikingTransformerBenchmark/cls/QKFormer"
+output: "/mnt/home/fenglinghao/log/SpikingTransformerBenchmark/cls/sdt"
