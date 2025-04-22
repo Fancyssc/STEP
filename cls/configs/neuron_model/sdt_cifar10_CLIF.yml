@@ -1,5 +1,5 @@
 # dataset
-data_dir: /mnt/data/datasets/CIFAR10
+data_dir: /home/fenglinghao/data/datasets/CIFAR10
 dataset: torch/cifar10
 num_classes: 10
 img_size: 32
@@ -75,4 +75,4 @@ log_interval: 200
 device: 0
 
 # log dir
-output: "/mnt/home/fenglinghao/log/SpikingTransformerBenchmark/cls/neuron_model"
+output: "/home/fenglinghao/log/SpikingTransformerBenchmark/cls/neuron_model"
