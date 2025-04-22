@@ -182,11 +182,11 @@ class SSA(BaseModule):
         self.reset()
 
         TB,C,H,W = x.shape
-        print(f"x.shape in SSA: {x.shape}")
+        # print(f"x.shape in SSA: {x.shape}")
 
         x_for_qkv = x.flatten(2)  # [TB,C,N]
         TB,C,N = x_for_qkv.shape 
-        print(f"x_for_qkv.shape in SSA: {x_for_qkv.shape}")
+        # print(f"x_for_qkv.shape in SSA: {x_for_qkv.shape}")
 
         q_conv_out = self.q_conv(x_for_qkv)  # [TB, C, N]
         q_conv_out = self.q_bn(q_conv_out)
@@ -322,6 +322,7 @@ class Spikformer(BaseModule):
         patch_embed = getattr(self, f"patch_embed")
 
         x = patch_embed(x)
+        attn = None
         for blk in block:
             x, attn = blk(x, attn) # TB C H W
         # dim adjustment
