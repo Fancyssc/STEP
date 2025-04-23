@@ -86,7 +86,7 @@ class MLP(BaseModule):
         x = self.fc1_bn(x)
         x = self.fc1_lif(x)
 
-        x1, x2 = torch.chunk(x, 2, dim=2)
+        x1, x2 = torch.chunk(x, 2, dim=1)
         x1 = self.dw_conv(x1)
         x1 = self.dw_bn(x1)
         x1 = self.dw_lif(x1)
@@ -372,8 +372,14 @@ class SPS(BaseModule):
         act_func=SigmoidGrad,
         alpha=4.0,
         layer_by_layer=True,
+        encode_type='direct',
     ):
-        super().__init__()
+        
+        super().__init__(
+            step=step,
+            encode_type=encode_type,
+            layer_by_layer=layer_by_layer,
+        )
         self.image_size = [img_size_h, img_size_w]
         patch_size = to_2tuple(patch_size)
         self.patch_size = patch_size
@@ -556,6 +562,7 @@ class Spikformer(BaseModule):
             act_func=act_func,
             alpha=alpha,
             threshold=threshold,
+            encode_type=encode_type,
         )
 
         block = nn.ModuleList(
