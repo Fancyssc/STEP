@@ -60,6 +60,7 @@ from models.static import (
     sdt_cifar,
     spikingformer_cifar,
     spikf_semm_cifar,
+    spikf_semm_imagenet,
     sglformer_cifar,
     spikingresformer_cifar,
     swformer_cifar,
