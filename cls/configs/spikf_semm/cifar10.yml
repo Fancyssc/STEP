@@ -54,7 +54,7 @@ alpha: 4.0
 
 
 #meta transformer layer
-embed_layer: 'vit_embed'
+embed_layer: 'SPS'
 attn_layer: 'SSA'
 
 

@@ -91,30 +91,43 @@ Other hyper-param setting are following the original paper.
 
 
 #### Meta-Transformer Test
+**ssa/sdsa**: Spiking Attention from originial Spikformer/SDT
+
+**sdsa_3**: Spiking Attention from Meta-Spikeformer(SDT_2) which substitute linear and regular conv with `RepConv`.
+
  **random_attn**: Query and Key are randomly initialized and not updated. 
 
  **vit_embed**: Using vanilla ViT embedding method and learnable position encoding.
 
  **conv2_embed**: Reduce the num. of conv layers from 4 to 2 in SPS of Spiking Transformer.
 
-|            Model            | Batch-Size |       Node        | Step | Seed | Result(Acc@1) |          supp.          |
-|:---------------------------:|:----------:|:-----------------:|:-------:|:----:|:-------------:|:-----------------------:|
-|         Spikformer          |    128     |     Braincog      | 4 |  42  |     95.12     |          base           |
-|         Spikformer          |    128     |     Braincog      | 4 |  42  |     94.96     |       random_attn       |
-|         Spikformer          |    128     |     Braincog      | 4 |  42  |     78.21     |        vit_embed        |
-|         Spikformer          |    128     |     Braincog      | 4 |  42  |     91.92     |       conv2_embed       |
+|            Model            | Batch-Size |       Node        | Step | Seed | Result(Acc@1) |        supp.         |
+|:---------------------------:|:----------:|:-----------------:|:-------:|:----:|:-------------:|:--------------------:|
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     95.12     |         ssa          |
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     94.96     |     random_attn      |
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     78.21     |      vit_embed       |
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     91.92     |     conv2_embed      |
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     95.57     |        sdsa_3        |
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     89.97     |  sdsa_3 & vit_embed  |
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     93.43     | sdsa_3 & conv2_embed |
 |                             |            |                   ||      |
-|             SDT             |     64     |     Braincog      | 4 |  42  |     95.66     |          base           |
-|             SDT             |     64     |     Braincog      | 4 |  42  |     95.51     |       random_attn       |
-|             SDT             |     64     |     Braincog      | 4 |  42  |     82.17     |        vit_embed        |
-|             SDT             |     64     |     Braincog      | 4 |  42  |     93.03     |       conv2_embed       |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     95.66     |         sdsa         |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     96.48     |     random_attn      |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     82.17     |      vit_embed       |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     93.03     |     conv2_embed      |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     96.48     |        sdsa_3        |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     87.86     |  sdsa_3 & vit_embed  |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     94.56     | sdsa_3 & conv2_embed |
 |                             |            |                   ||      |
-|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     94.98     |          base           |
+|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     94.98     |           ssa           |
 |      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     95.57     |       random_attn       |
 |      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     89.24     |        vit_embed        |
 |      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     93.33     |       conv2_embed       |
+|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     95.83     |       sdsa_3       |
+|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     84.95    |        sdsa_3 & vit_embed        |
+|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     93.37     |       sdsa_3 & conv2_embed       |
 |                             |            |                   ||      |
-|             ViT             |    128     |     Braincog      | 4 |  42  |     96.51     |          base           |
+|             ViT             |    128     |     Braincog      | 4 |  42  |     96.51     |        attention        |
 |             ViT             |    128     |     Braincog      | 4 |  42  |     90.89     |        vit_embed        |
 |             ViT             |    128     |     Braincog      | 4 |  42  |     96.41     |       random_attn       |
 |             ViT             |    128     |     Braincog      | 4 |  42  |     95.0      |       conv2_embed       |

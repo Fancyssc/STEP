@@ -577,3 +577,125 @@ class sequential_embed(BaseModule):
         x = x + x_feat
 
         return x.permute(0, 2, 1)
+
+
+
+
+
+class BNAndPadLayer(nn.Module):
+    def __init__(
+        self,
+        pad_pixels,
+        num_features,
+        eps=1e-5,
+        momentum=0.1,
+        affine=True,
+        track_running_stats=True,
+    ):
+        super(BNAndPadLayer, self).__init__()
+        self.bn = nn.BatchNorm2d(
+            num_features, eps, momentum, affine, track_running_stats
+        )
+        self.pad_pixels = pad_pixels
+
+    def forward(self, input):
+        output = self.bn(input)
+        if self.pad_pixels > 0:
+            if self.bn.affine:
+                pad_values = (
+                    self.bn.bias.detach()
+                    - self.bn.running_mean
+                    * self.bn.weight.detach()
+                    / torch.sqrt(self.bn.running_var + self.bn.eps)
+                )
+            else:
+                pad_values = -self.bn.running_mean / torch.sqrt(
+                    self.bn.running_var + self.bn.eps
+                )
+            output = F.pad(output, [self.pad_pixels] * 4)
+            pad_values = pad_values.view(1, -1, 1, 1)
+            output[:, :, 0 : self.pad_pixels, :] = pad_values
+            output[:, :, -self.pad_pixels :, :] = pad_values
+            output[:, :, :, 0 : self.pad_pixels] = pad_values
+            output[:, :, :, -self.pad_pixels :] = pad_values
+        return output
+
+class repconv_attn(BaseModule):
+    def __init__(self,embed_dim, step=4,encode_type='direct',num_heads=12,attn_scale=0.125,attn_drop=0.,node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.0,layer_by_layer=True):
+        super().__init__(step=step, encode_type=encode_type,layer_by_layer=layer_by_layer)
+        self.embed_dim = embed_dim
+        self.num_heads = num_heads
+        self.scale = attn_scale
+        self.T = step
+        self.q_linear = nn.Sequential(
+            nn.Conv2d(embed_dim, embed_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            BNAndPadLayer(pad_pixels=1, num_features=embed_dim),
+            nn.Conv2d(embed_dim, embed_dim, 3, 1, 0, groups=embed_dim, bias=False),
+            nn.Conv2d(embed_dim, embed_dim, 1, 1, 0, groups=1, bias=False),
+        )
+        self.q_bn = nn.BatchNorm2d(embed_dim)
+        self.q_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+
+        self.k_linear = nn.Sequential(
+            nn.Conv2d(embed_dim, embed_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            BNAndPadLayer(pad_pixels=1, num_features=embed_dim),
+            nn.Conv2d(embed_dim, embed_dim, 3, 1, 0, groups=embed_dim, bias=False),
+            nn.Conv2d(embed_dim, embed_dim, 1, 1, 0, groups=1, bias=False),
+        )
+        self.k_bn = nn.BatchNorm2d(embed_dim)
+        self.k_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+
+        self.v_linear = nn.Sequential(
+            nn.Conv2d(embed_dim, embed_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            BNAndPadLayer(pad_pixels=1, num_features=embed_dim),
+            nn.Conv2d(embed_dim, embed_dim, 3, 1, 0, groups=embed_dim, bias=False),
+            nn.Conv2d(embed_dim, embed_dim, 1, 1, 0, groups=1, bias=False),
+        )
+        self.v_bn = nn.BatchNorm2d(embed_dim)
+        self.v_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+
+        self.attn_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=0.5, layer_by_layer=True, mem_detach=False) #special v_thres
+
+        self.proj_linear = nn.Sequential(
+            nn.Conv2d(embed_dim, embed_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            BNAndPadLayer(pad_pixels=1, num_features=embed_dim),
+            nn.Conv2d(embed_dim, embed_dim, 3, 1, 0, groups=embed_dim, bias=False),
+            nn.Conv2d(embed_dim, embed_dim, 1, 1, 0, groups=1, bias=False),
+        )
+        self.proj_bn = nn.BatchNorm2d(embed_dim)
+        self.proj_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+
+    def forward(self, x):
+        self.reset()
+
+        # TB C H W is need for SDSA-V3
+        TB, N, C = x.shape
+        H, W = int(N**0.5), int(N**0.5)
+        x = x.permute(0, 2, 1).reshape(TB, C, H, W).contiguous()  # TB C H W
+        x_for_qkv = x
+
+        q_linear_out = self.q_linear(x_for_qkv)
+        q_linear_out = self.q_bn(q_linear_out)
+        q_linear_out = self.q_lif(q_linear_out).flatten(-2, -1).transpose(-1, -2) # TB N C
+        q = q_linear_out.reshape(-1, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3).contiguous()
+
+        k_linear_out = self.k_linear(x_for_qkv)
+        k_linear_out = self.k_bn(k_linear_out)
+        k_linear_out = self.k_lif(k_linear_out).flatten(-2, -1).transpose(-1, -2)
+        k = k_linear_out.reshape(-1, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3).contiguous()
+
+        v_linear_out = self.v_linear(x_for_qkv)
+        v_linear_out = self.v_bn(v_linear_out)
+        v_linear_out = self.v_lif(v_linear_out).flatten(-2, -1).transpose(-1, -2)
+        v = v_linear_out.reshape(-1, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3).contiguous()
+
+        attn = (q @ k.transpose(-2, -1)) * self.scale
+        x = attn @ v
+        x = x.transpose(1, 2).reshape(TB, N, C).contiguous() # TB N C
+
+        x = x.permute(0, 2, 1).reshape(TB, C, H, W).contiguous()  # TB C H W
+
+        x = self.attn_lif(x)
+        x = self.proj_lif(self.proj_bn(self.proj_linear(x))).flatten(-2, -1).transpose(-1, -2)
+
+        return x # TB N C

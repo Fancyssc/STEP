@@ -4,6 +4,7 @@ from timm.models.layers import trunc_normal_
 from timm.models.vision_transformer import _cfg
 from ..utils.node import *
 from braincog.base.strategy.surrogate import *
+from .spikformer_cifar import BNAndPadLayer
 
 import torch.nn as nn
 """
@@ -71,9 +72,8 @@ class MLP_Unit(BaseModule):
         self.out_features = out_features
         self.expert_idx = exp_idx
 
-    def forward(self, x,):
+    def forward(self, x):
         self.reset()
-
         TB, N, C = x.shape
         x = self.unit_linear(x)
         x = self.unit_bn(x.transpose(-1, -2)).transpose(-1, -2).reshape(4, TB//4, N, self.out_features).contiguous()
@@ -641,3 +641,101 @@ class sequential_embed(BaseModule):
         x = x + x_feat
 
         return x.permute(0, 2, 1)
+
+class repconv_attn(BaseModule):
+    def __init__(self,embed_dim, step=4, encode_type='direct',num_heads=12,attn_scale=0.125,attn_drop=0.,
+                 node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.0,layer_by_layer=True,
+                 expert_mode='base', expert_dim=0, num_expert=4):
+        super().__init__(step=step, encode_type=encode_type,layer_by_layer=layer_by_layer,)
+        self.num_heads = num_heads
+        self.scale = attn_scale
+        self.T = step
+
+        if expert_mode == 'small':
+            self.dim = expert_dim
+        elif expert_mode == 'base':
+            self.dim = embed_dim
+
+        # k must be expert dim
+
+        self.k_linear = nn.Sequential(
+            nn.Conv2d(embed_dim, embed_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            BNAndPadLayer(pad_pixels=1, num_features=embed_dim),
+            nn.Conv2d(embed_dim, embed_dim, 3, 1, 0, groups=embed_dim, bias=False),
+            nn.Conv2d(embed_dim, expert_dim, 1, 1, 0, groups=1, bias=False),
+        )
+        self.k_bn = nn.BatchNorm2d(expert_dim)
+        self.k_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+
+        # v may be expert dim
+        self.v_linear = nn.Sequential(
+            nn.Conv2d(embed_dim, embed_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            BNAndPadLayer(pad_pixels=1, num_features=embed_dim),
+            nn.Conv2d(embed_dim, embed_dim, 3, 1, 0, groups=embed_dim, bias=False),
+            nn.Conv2d(embed_dim, self.dim, 1, 1, 0, groups=1, bias=False),
+        )
+        self.v_bn = nn.BatchNorm2d(self.dim)
+        self.v_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+
+        # self.attn_lif = node(step=step, tau =tau, act_func=act_func(alpha=alpha), threshold=0.5, layer_by_layer=True, mem_detach=False) #special v_thres
+
+        self.proj_linear = nn.Sequential(
+            nn.Conv2d(self.dim, self.dim, kernel_size=1, stride=1, padding=0, bias=False),
+            BNAndPadLayer(pad_pixels=1, num_features=embed_dim),
+            nn.Conv2d(self.dim,self.dim, 3, 1, 0, groups=embed_dim, bias=False),
+            nn.Conv2d(self.dim, embed_dim, 1, 1, 0, groups=1, bias=False),
+        )
+        self.proj_bn = nn.BatchNorm2d(embed_dim)
+        self.proj_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+
+        # expert
+        self.num_expert = num_expert
+        self.expert_dim = expert_dim
+
+        self.router1 = nn.Linear(embed_dim, num_expert)
+        self.router2 = nn.BatchNorm1d(num_expert)
+        self.router3 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+
+        self.ff_list = nn.ModuleList([MLP_Unit(in_features=embed_dim, out_features=expert_dim, exp_idx=i) for i in range(num_expert)])
+
+        self.lif_list = nn.ModuleList(
+            [node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+             for i in range(num_expert)])
+
+    def forward(self, x):
+        self.reset()
+
+        TB, N, C = x.shape
+        H, W = int(N ** 0.5), int(N ** 0.5)
+        x = x.permute(0, 2, 1).reshape(TB, C, H, W).contiguous()  # TB C H W
+        x_for_qkv = x
+
+        k_linear_out = self.k_linear(x_for_qkv) # TB C H W
+        k_linear_out = self.k_bn(k_linear_out).flatten(-2, -1).transpose(-1, -2)
+        k_linear_out = k_linear_out.reshape(self.step, -1, N, self.expert_dim).contiguous()
+        k = self.k_lif(k_linear_out)
+
+        v_linear_out = self.v_linear(x_for_qkv)
+        v_linear_out = self.v_bn(v_linear_out).flatten(-2, -1).transpose(-1, -2)
+        v_linear_out = v_linear_out.reshape(self.step, -1, N, C).contiguous() # T B N C
+        v = self.v_lif(v_linear_out)
+
+        weights = self.router1(x_for_qkv.flatten(-2, -1).transpose(-1, -2))
+        weights = self.router2(weights.transpose(-1, -2)).reshape(self.step, -1, N, self.num_expert).contiguous()
+        weights = self.router3(weights) # weight matrix
+
+        # attention + MoE
+        y = 0
+        for idx in range(self.num_expert):
+            weight_idx = weights[:, :, :,  idx].unsqueeze(dim=-1)
+            q = self.ff_list[idx](x_for_qkv.flatten(-2, -1).transpose(-2, -1))
+            attn = q @ k.transpose(-1, -2)
+            result = (attn @ v) * self.scale
+            result = self.lif_list[idx](result)
+            y += weight_idx*result
+
+        y = y.flatten(0, 1) # TB N C
+        y = y.permute(0, 2, 1).reshape(TB, C, H, W).contiguous()
+        y = self.proj_lif(self.proj_bn(self.proj_linear(y))).flatten(-2, -1).transpose(-1, -2)
+
+        return y # TB N C

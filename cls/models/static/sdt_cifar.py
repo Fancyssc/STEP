@@ -4,6 +4,7 @@ from timm.models.layers import trunc_normal_
 from timm.models.vision_transformer import _cfg
 from ..utils.node import *
 from braincog.base.strategy.surrogate import *
+from .spikformer_cifar import BNAndPadLayer
 
 import torch.nn as nn
 
@@ -643,3 +644,110 @@ class sequential_embed(BaseModule):
         x = x + x_feat # T B C N
 
         return x.reshape(*x.shape[:-1], int(self.out_length ** 0.5), int(self.out_length ** 0.5)).contiguous() # T B C H W
+
+class repconv_attn(BaseModule):
+    def __init__(self,embed_dim, step=4,encode_type='direct',num_heads=12,scale=0.125,attn_drop=0.,
+                 node=LIFNode,tau=2.0,act_func=SigmoidGrad,threshold=1.0,alpha=4.0,layer_by_layer=True):
+        super().__init__(encode_type=encode_type, step=step,layer_by_layer=layer_by_layer)
+        self.num_heads = num_heads
+
+        self.q_conv = nn.Sequential(
+            nn.Conv2d(embed_dim, embed_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            BNAndPadLayer(pad_pixels=1, num_features=embed_dim),
+            nn.Conv2d(embed_dim, embed_dim, 3, 1, 0, groups=embed_dim, bias=False),
+            nn.Conv2d(embed_dim, embed_dim, 1, 1, 0, groups=1, bias=False),
+        )
+        self.q_bn = nn.BatchNorm2d(embed_dim)
+        self.q_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                             layer_by_layer=layer_by_layer, mem_detach=False)
+
+        self.k_conv = nn.Sequential(
+            nn.Conv2d(embed_dim, embed_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            BNAndPadLayer(pad_pixels=1, num_features=embed_dim),
+            nn.Conv2d(embed_dim, embed_dim, 3, 1, 0, groups=embed_dim, bias=False),
+            nn.Conv2d(embed_dim, embed_dim, 1, 1, 0, groups=1, bias=False),
+        )
+        self.k_bn = nn.BatchNorm2d(embed_dim)
+        self.k_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                             layer_by_layer=layer_by_layer, mem_detach=False)
+
+        self.v_conv = nn.Sequential(
+            nn.Conv2d(embed_dim, embed_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            BNAndPadLayer(pad_pixels=1, num_features=embed_dim),
+            nn.Conv2d(embed_dim, embed_dim, 3, 1, 0, groups=embed_dim, bias=False),
+            nn.Conv2d(embed_dim, embed_dim, 1, 1, 0, groups=1, bias=False),
+        )
+        self.v_bn = nn.BatchNorm2d(embed_dim)
+        self.v_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                             layer_by_layer=layer_by_layer, mem_detach=False)
+        #special v_thres
+        self.attn_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=0.5,
+                             layer_by_layer=layer_by_layer, mem_detach=False)
+
+        self.talking_heads = nn.Conv1d(num_heads, num_heads, kernel_size=1, stride=1, bias=False)
+        self.talking_heads_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                             layer_by_layer=layer_by_layer, mem_detach=False)
+
+        self.proj_conv = nn.Sequential(
+            nn.Conv2d(embed_dim, embed_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            BNAndPadLayer(pad_pixels=1, num_features=embed_dim),
+            nn.Conv2d(embed_dim, embed_dim, 3, 1, 0, groups=embed_dim, bias=False),
+            nn.Conv2d(embed_dim, embed_dim, 1, 1, 0, groups=1, bias=False),
+        )
+        self.proj_bn = nn.BatchNorm2d(embed_dim)
+
+        self.shortcut_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                             layer_by_layer=layer_by_layer, mem_detach=False)
+
+    def forward(self, x):
+        self.reset()
+
+        TB, C, H, W = x.shape #TB dim H//4 W//4
+        N = H * W
+
+        identity = x
+
+        #shortcut
+        x = self.shortcut_lif(x).reshape(TB, C, H, W)
+
+        x_for_qkv = x
+        q_conv_out = self.q_conv(x_for_qkv)
+        q_conv_out = self.q_bn(q_conv_out)
+        q_conv_out = self.q_lif(q_conv_out).flatten(-2, -1) #TB C N
+
+        k_conv_out = self.k_conv(x_for_qkv)
+        k_conv_out = self.k_bn(k_conv_out)
+        k_conv_out = self.k_lif(k_conv_out).flatten(-2, -1)
+
+        v_conv_out = self.v_conv(x_for_qkv)
+        v_conv_out = self.v_bn(v_conv_out)
+        v_conv_out = self.v_lif(v_conv_out).flatten(-2, -1)
+
+        q = (
+            q_conv_out
+            .transpose(-1, -2)
+            .reshape(TB, N, self.num_heads, C // self.num_heads)
+            .permute(0, 2, 1, 3)
+            .contiguous())
+        k = (k_conv_out
+            .transpose(-1, -2)
+            .reshape(TB, N, self.num_heads, C // self.num_heads)
+            .permute(0, 2, 1, 3)
+            .contiguous())
+        v = (v_conv_out
+            .transpose(-1, -2)
+            .reshape(TB, N, self.num_heads, C // self.num_heads)
+            .permute(0, 2, 1, 3)
+            .contiguous()) #TB H N C//H
+
+        # attn
+        kv = k.mul(v)
+        kv = kv.sum(dim=-2, keepdim=True)
+        kv = self.talking_heads_lif(kv) #TB H N C//H
+        x = q.mul(kv)
+
+        x = x.transpose(2, 3).reshape(TB, C, H, W).contiguous()
+        x = self.proj_bn(self.proj_conv(x))
+
+        x = x + identity
+        return x
