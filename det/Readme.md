@@ -57,4 +57,4 @@ even if all package versions are aligned as recommended. **Therefore, we strongl
 4. **Training**
 Here is an example for training Spikformer 8-512 on 1 GPU:
 - `cd tools`
-- `CUDA_VISIBLE_DEVICES=0 ./dist_train.sh ../configs/xxxx/xxxx 1`
+- `CUDA_VISIBLE_DEVICES=0 ./dist_train.sh ../configs/sdt_mask_rcnn/mask-rcnn_sdt-t_fpn_1x_coco.py 1`

@@ -7,10 +7,8 @@ from mmengine.runner.checkpoint import CheckpointLoader
 import torch
 import torchinfo
 import torch.nn as nn
-from spikingjelly.clock_driven.neuron import (
-    MultiStepParametricLIFNode,
-    MultiStepLIFNode,
-)
+from braincog.base.node import LIFNode
+from braincog.base.strategy.surrogate import SigmoidGrad
 from spikingjelly.clock_driven.functional import reset_net
 from timm.models.layers import trunc_normal_, DropPath
 import torch.nn.functional as F
@@ -115,10 +113,10 @@ class SepConv(nn.Module):
     ):
         super().__init__()
         med_channels = int(expansion_ratio * dim)
-        self.lif1 = MultiStepLIFNode(tau=2.0, detach_reset=True, backend="cupy")
+        self.lif1 = LIFNode(step=4, tau=2., act_func=SigmoidGrad, threshold=0.5,layer_by_layer=True,mem_detach=False)
         self.pwconv1 = nn.Conv2d(dim, med_channels, kernel_size=1, stride=1, bias=bias)
         self.bn1 = nn.BatchNorm2d(med_channels)
-        self.lif2 = MultiStepLIFNode(tau=2.0, detach_reset=True, backend="cupy")
+        self.lif2 = LIFNode(step=4, tau=2., act_func=SigmoidGrad, threshold=0.5,layer_by_layer=True,mem_detach=False)
         self.dwconv = nn.Conv2d(
             med_channels,
             med_channels,
@@ -131,11 +129,14 @@ class SepConv(nn.Module):
         self.bn2 = nn.BatchNorm2d(dim)
 
     def forward(self, x):
+        self.lif1.n_reset()
+        self.lif2.n_reset()
+
         T, B, C, H, W = x.shape
-        x = self.lif1(x)
-        x = self.bn1(self.pwconv1(x.flatten(0, 1))).reshape(T, B, -1, H, W)
-        x = self.lif2(x)
-        x = self.dwconv(x.flatten(0, 1))
+        x = self.lif1(x.flatten(0, 1))
+        x = self.bn1(self.pwconv1(x)).reshape(T, B, -1, H, W)
+        x = self.lif2(x.flatten(0, 1))
+        x = self.dwconv(x)
         x = self.bn2(self.pwconv2(x)).reshape(T, B, -1, H, W)
         return x
 
@@ -151,13 +152,13 @@ class MS_ConvBlock(nn.Module):
         self.Conv = SepConv(dim=dim)
         # self.Conv = MHMC(dim=dim)
 
-        self.lif1 = MultiStepLIFNode(tau=2.0, detach_reset=True, backend="cupy")
+        self.lif1 = LIFNode(step=4, tau=2., act_func=SigmoidGrad, threshold=1.,layer_by_layer=True,mem_detach=False)
         self.conv1 = nn.Conv2d(
             dim, dim * mlp_ratio, kernel_size=3, padding=1, groups=1, bias=False
         )
         # self.conv1 = RepConv(dim, dim*mlp_ratio)
         self.bn1 = nn.BatchNorm2d(dim * mlp_ratio)  # 这里可以进行改进
-        self.lif2 = MultiStepLIFNode(tau=2.0, detach_reset=True, backend="cupy")
+        self.lif2 = LIFNode(step=4, tau=2., act_func=SigmoidGrad, threshold=1.,layer_by_layer=True,mem_detach=False)
         self.conv2 = nn.Conv2d(
             dim * mlp_ratio, dim, kernel_size=3, padding=1, groups=1, bias=False
         )
@@ -166,11 +167,13 @@ class MS_ConvBlock(nn.Module):
 
     def forward(self, x):
         T, B, C, H, W = x.shape
+        self.lif1.n_reset()
+        self.lif2.n_reset()
 
         x = self.Conv(x) + x
         x_feat = x
-        x = self.bn1(self.conv1(self.lif1(x).flatten(0, 1))).reshape(T, B, 4 * C, H, W)
-        x = self.bn2(self.conv2(self.lif2(x).flatten(0, 1))).reshape(T, B, C, H, W)
+        x = self.bn1(self.conv1(self.lif1(x.flatten(0, 1)))).reshape(T, B, 4 * C, H, W)
+        x = self.bn2(self.conv2(self.lif2(x.flatten(0, 1)))).reshape(T, B, C, H, W)
         x = x_feat + x
 
         return x
@@ -186,14 +189,14 @@ class MS_MLP(nn.Module):
         # self.fc1 = linear_unit(in_features, hidden_features)
         self.fc1_conv = nn.Conv1d(in_features, hidden_features, kernel_size=1, stride=1)
         self.fc1_bn = nn.BatchNorm1d(hidden_features)
-        self.fc1_lif = MultiStepLIFNode(tau=2.0, detach_reset=True, backend="cupy")
+        self.fc1_lif = LIFNode(step=4, tau=2., act_func=SigmoidGrad, threshold=1.,layer_by_layer=True,mem_detach=False)
 
         # self.fc2 = linear_unit(hidden_features, out_features)
         self.fc2_conv = nn.Conv1d(
             hidden_features, out_features, kernel_size=1, stride=1
         )
         self.fc2_bn = nn.BatchNorm1d(out_features)
-        self.fc2_lif = MultiStepLIFNode(tau=2.0, detach_reset=True, backend="cupy")
+        self.fc2_lif = LIFNode(step=4, tau=2., act_func=SigmoidGrad, threshold=1.,layer_by_layer=True,mem_detach=False)
         # self.drop = nn.Dropout(0.1)
 
         self.c_hidden = hidden_features
@@ -203,12 +206,15 @@ class MS_MLP(nn.Module):
         T, B, C, H, W = x.shape
         N = H * W
         x = x.flatten(3)
-        x = self.fc1_lif(x)
-        x = self.fc1_conv(x.flatten(0, 1))
+        self.fc1_lif.n_reset()
+        self.fc2_lif.n_reset()
+
+        x = self.fc1_lif(x.flatten(0, 1))
+        x = self.fc1_conv(x)
         x = self.fc1_bn(x).reshape(T, B, self.c_hidden, N).contiguous()
 
-        x = self.fc2_lif(x)
-        x = self.fc2_conv(x.flatten(0, 1))
+        x = self.fc2_lif(x.flatten(0, 1))
+        x = self.fc2_conv(x)
         x = self.fc2_bn(x).reshape(T, B, C, H, W).contiguous()
 
         return x
@@ -233,7 +239,7 @@ class MS_Attention_RepConv_qkv_id(nn.Module):
         self.num_heads = num_heads
         self.scale = 0.125
 
-        self.head_lif = MultiStepLIFNode(tau=2.0, detach_reset=True, backend="cupy")
+        self.head_lif = LIFNode(step=4, tau=2., act_func=SigmoidGrad, threshold=1.,layer_by_layer=True,mem_detach=False)
 
         self.q_conv = nn.Sequential(RepConv(dim, dim, bias=False), nn.BatchNorm2d(dim))
 
@@ -241,15 +247,13 @@ class MS_Attention_RepConv_qkv_id(nn.Module):
 
         self.v_conv = nn.Sequential(RepConv(dim, dim, bias=False), nn.BatchNorm2d(dim))
 
-        self.q_lif = MultiStepLIFNode(tau=2.0, detach_reset=True, backend="cupy")
+        self.q_lif = LIFNode(step=4, tau=2., act_func=SigmoidGrad, threshold=1.,layer_by_layer=True,mem_detach=False)
 
-        self.k_lif = MultiStepLIFNode(tau=2.0, detach_reset=True, backend="cupy")
+        self.k_lif = LIFNode(step=4, tau=2., act_func=SigmoidGrad, threshold=1.,layer_by_layer=True,mem_detach=False)
 
-        self.v_lif = MultiStepLIFNode(tau=2.0, detach_reset=True, backend="cupy")
+        self.v_lif = LIFNode(step=4, tau=2., act_func=SigmoidGrad, threshold=1., layer_by_layer=True,mem_detach=False)
 
-        self.attn_lif = MultiStepLIFNode(
-            tau=2.0, v_threshold=0.5, detach_reset=True, backend="cupy"
-        )
+        self.attn_lif = LIFNode(step=4, tau=2., act_func=SigmoidGrad, threshold=0.5,layer_by_layer=True,mem_detach=False)
 
         self.proj_conv = nn.Sequential(
             RepConv(dim, dim, bias=False), nn.BatchNorm2d(dim)
@@ -260,14 +264,19 @@ class MS_Attention_RepConv_qkv_id(nn.Module):
     def forward(self, x):
         T, B, C, H, W = x.shape
         N = H * W
+        self.head_lif.n_reset()
+        self.q_lif.n_reset()
+        self.k_lif.n_reset()
+        self.v_lif.n_reset()
+        self.attn_lif.n_reset()
 
-        x = self.head_lif(x)
+        x = self.head_lif(x.flatten(0, 1))
 
-        q = self.q_conv(x.flatten(0, 1)).reshape(T, B, C, H, W)
-        k = self.k_conv(x.flatten(0, 1)).reshape(T, B, C, H, W)
-        v = self.v_conv(x.flatten(0, 1)).reshape(T, B, C, H, W)
+        q = self.q_conv(x).reshape(T, B, C, H, W)
+        k = self.k_conv(x).reshape(T, B, C, H, W)
+        v = self.v_conv(x).reshape(T, B, C, H, W)
 
-        q = self.q_lif(q).flatten(3)
+        q = self.q_lif(q.flatten(0, 1)).reshape(T, B, C, H, W).flatten(3)
         q = (
             q.transpose(-1, -2)
             .reshape(T, B, N, self.num_heads, C // self.num_heads)
@@ -275,7 +284,7 @@ class MS_Attention_RepConv_qkv_id(nn.Module):
             .contiguous()
         )
 
-        k = self.k_lif(k).flatten(3)
+        k = self.k_lif(k.flatten(0, 1)).reshape(T, B, C, H, W).flatten(3)
         k = (
             k.transpose(-1, -2)
             .reshape(T, B, N, self.num_heads, C // self.num_heads)
@@ -283,7 +292,7 @@ class MS_Attention_RepConv_qkv_id(nn.Module):
             .contiguous()
         )
 
-        v = self.v_lif(v).flatten(3)
+        v = self.v_lif(v.flatten(0, 1)).reshape(T, B, C, H, W).flatten(3)
         v = (
             v.transpose(-1, -2)
             .reshape(T, B, N, self.num_heads, C // self.num_heads)
@@ -296,9 +305,7 @@ class MS_Attention_RepConv_qkv_id(nn.Module):
         x = (q @ x) * self.scale
         spike = self.identity2(x)
         x = x.transpose(3, 4).reshape(T, B, C, N).contiguous()
-        x = self.attn_lif(x).reshape(T, B, C, H, W)
-        x = x.reshape(T, B, C, H, W)
-        x = x.flatten(0, 1)
+        x = self.attn_lif(x.flatten(0, 1)).reshape(T*B, C, H, W)
         x = self.proj_conv(x).reshape(T, B, C, H, W) # 这里需要加个hook
 
         return x
@@ -363,15 +370,15 @@ class MS_DownSampling(nn.Module):
 
         self.encode_bn = nn.BatchNorm2d(embed_dims)
         if not first_layer:
-            self.encode_lif = MultiStepLIFNode(
-                tau=2.0, detach_reset=True, backend="cupy"
-            )
+            self.encode_lif = LIFNode(step=4, tau=2., act_func=SigmoidGrad, threshold=1., layer_by_layer=True,mem_detach=False)
+
 
     def forward(self, x):
-        T, B, _, _, _ = x.shape
+        T, B, C, H, W = x.shape
 
         if hasattr(self, "encode_lif"):
-            x = self.encode_lif(x)
+            self.encode_lif.n_reset()
+            x = self.encode_lif(x.flatten(0, 1)).reshape(T, B, C, H, W)
         x = self.encode_conv(x.flatten(0, 1))
         _, _, H, W = x.shape
         x = self.encode_bn(x).reshape(T, B, -1, H, W).contiguous()
@@ -509,7 +516,8 @@ class Spiking_vit_MetaFormer(BaseModule):
             ]
         )
 
-        self.lif = MultiStepLIFNode(tau=2.0, detach_reset=True, backend="cupy")
+        self.lif = LIFNode(step=4, tau=2., act_func=SigmoidGrad, threshold=1., layer_by_layer=True,mem_detach=False)
+
         # self.head = (
         #     nn.Linear(embed_dim[3], num_classes) if num_classes > 0 else nn.Identity()
         # )
