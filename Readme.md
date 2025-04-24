@@ -4,7 +4,7 @@ This repository, built upon the **[BrainCog](https://github.com/BrainCog-X/Brain
 
 - Classification: [Here](cls/Readme.md)
 - Segmentation: [Here](seg/Readme.md)
-
+- Detection: [Here](det/Readme.md)
 ## Features
 
 - **BrainCog-based**: Integrates and reproduces state-of-the-art Spiking Transformer implementations.
@@ -26,7 +26,7 @@ Spiking-Transformer-Benchmark/
 │   ├── configs/       
 │   ├── mmseg      
 │   └── ...
-├── det/               # Object detection submodule (to be added)
+├── det/               # Object detection submodule 
 │   └── README.md      
 └── README.md          
 ```
