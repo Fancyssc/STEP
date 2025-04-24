@@ -51,8 +51,8 @@ alpha: 4.0
 
 # train hyperparam
 amp: True
-batch_size: 2
-val_batch_size: 2
+batch_size: 24  # 24*8
+val_batch_size: 24
 lr: 5e-4
 min_lr: 1e-5
 sched: cosine

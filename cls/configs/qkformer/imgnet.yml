@@ -36,13 +36,13 @@ model: "qkformer_imagenet"
 step: 4
 patch_size: 16
 in_channels: 3
-embed_dim: 384
+embed_dim: 512
 num_heads: 6
 mlp_ratio: 4
 attn_scale: 0.125
 mlp_drop: 0.0
 attn_drop: 0.0
-depths: 10
+depths: 8
 
 # node
 tau: 2.0
@@ -53,13 +53,13 @@ alpha: 4.0
 
 # train hyperparam
 amp: True
-batch_size: 32
+batch_size: 32  # 32*8
 val_batch_size: 32
 lr: 0.0006  # eff_bs=256 (world_size=8), lr=blr*256/256=0.0006
 min_lr: 1e-6
 sched: cosine
 weight_decay: 5e-2
-epochs: 200
+epochs: 300
 cooldown_epochs: 10
 warmup_epochs: 5
 warmup_lr: 0.000001

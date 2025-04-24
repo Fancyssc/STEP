@@ -39,7 +39,7 @@ model: "std_imagenet"
 step: 4
 patch_size: 16
 in_channels: 3
-embed_dim: 384
+embed_dim: 512
 num_heads: 8
 mlp_ratio: 4
 attn_scale: 0.125
@@ -57,8 +57,8 @@ alpha: 4.0
 # train hyperparam
 amp: False
 channels-last: False
-batch_size: 2  #48
-val_batch_size: 2  #48
+batch_size: 32  # 32*8
+val_batch_size: 32
 lr: 0.0015
 min_lr: 1.5e-5
 sched: cosine
