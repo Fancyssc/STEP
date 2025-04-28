@@ -76,7 +76,7 @@ seed: 42
 log_interval: 200
 
 # log dir
-output: "/home/shensicheng/log/SpikingTransformerBenchmark/meta-test/Spikf_SEMM"
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/Spikf_SEMM"
 
 # device
-device: 0
+device: 7

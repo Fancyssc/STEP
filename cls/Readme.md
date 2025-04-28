@@ -89,6 +89,58 @@ Other hyper-param setting are following the original paper.
 | Spikformer + SEMM |    128     | psMNIST | 4 |  400  |     98.46     |                 -                 |
 | Spikformer + SEMM |    128     | sCIFAR10| 4 |  400  |     85.61     |                 -                 |
 
+#### Neuron Test
+|   Model    | Batch-Size | Dataset  | Step | Epoch | Result(Acc@1) | Neuron |
+|:----------:|:----------:|:--------:|:----:|:-----:|:-------------:|:------:|
+| Spikformer |    128     | CIFAR10 |  4   |  400  |     95.38     |  CLIF  |
+| Spikformer |    128     | CIFAR10 |  4   |  400  |     95.41     |  GLIF  |
+| Spikformer |    128     | CIFAR10 |  4   |  400  |     95.85     |  KLIF  |
+| Spikformer |    128     | CIFAR10 |  4   |  400  |     96.06     |  PLIF  |
+| Spikformer |    128     | CIFAR10 |  4   |  400  |     95.04     |  PSN   |
+|            |            ||      |       |               |        |
+|    SDT     |     64     | CIFAR10 |  4   |  300  |     95.51     |  CLIF  |
+|    SDT     |     64     | CIFAR10 |  4   |  300  |     95.11     |  GLIF  |
+|    SDT     |     64     | CIFAR10 |  4   |  300  |     94.79     |  KLIF  |
+|    SDT     |     64     | CIFAR10 |  4   |  300  |     95.24     |  PLIF  |
+|    SDT     |     64     | CIFAR10 |  4   |  300  |     93.59     |  PSN   |
+|            |            ||      |       |               |        |
+|      Spikformer + SEMM      |    128     | CIFAR10 |  4   |  400  |     95.44     |  CLIF  |
+|   Spikformer + SEMM     |    128     | CIFAR10 |  4   |  400  |     95.78     |  GLIF  |
+|    Spikformer + SEMM     |    128     | CIFAR10 |  4   |  400  |     95.59     |  KLIF  |
+|  Spikformer + SEMM    |    128     | CIFAR10 |  4   |  400  |     95.66     |  PLIF  |
+|   Spikformer + SEMM    |    128     | CIFAR10 |  4   |  400  |     94.52     |  PSN   |
+
+
+#### Sequential Image Classification
+
+|   Model    | Batch-Size | Dataset | Step | Epoch | Result(Acc@1) |               supp.               |
+|:----------:|:----------:|:-------:|:-------:|:-----:|:-------------:|:---------------------------------:|
+| Spikformer |    128     | sMNIST  | 4 |  400  |     98.84     |                 -                 |
+| Spikformer |    128     | psMNIST | 4 |  400  |     97.97     |                 -                 |
+| Spikformer |    128     | sCIFAR10| 4 |  400  |     84.26     |                 -                 |
+|            |            |          ||       |
+|    SDT     |    128     | sMNIST  | 4 |  400  |     98.77     |                 -                 |
+|    SDT     |    128     | psMNIST | 4 |  400  |     97.80     |                 -                 |
+|    SDT     |    128     | sCIFAR10| 4 |  400  |     82.31     |                 -                 |
+|            |            |          ||       |
+| Spikformer + SEMM |    128     | sMNIST  | 4 |  400  |     99.33     |                 -                 |
+| Spikformer + SEMM |    128     | psMNIST | 4 |  400  |     98.46     |                 -                 |
+| Spikformer + SEMM |    128     | sCIFAR10| 4 |  400  |     85.61     |                 -                 |
+
+#### Encoding Test
+|   Model    | Batch-Size | Dataset  | Step | Epoch | Result(Acc@1) | Encoding |
+|:----------:|:----------:|:--------:|:----:|:-----:|:-------------:|:--------:|
+| Spikformer |    128     | CIFAR10 |  4   |  400  |     82.75     |  phase   |
+| Spikformer |    128     | CIFAR10 |  4   |  400  |     82.83     |   rate   |
+| Spikformer |    128     | CIFAR10 |  4   |  400  |     82.10     |   ttfs   |
+|            |            ||      |       |               |          |
+|    SDT     |     64     | CIFAR10 |  4   |  300  |     85.15     |  phase   |
+|    SDT     |     64     | CIFAR10 |  4   |  300  |     83.97     |   rate   |
+|    SDT     |     64     | CIFAR10 |  4   |  300  |     84.15     |   ttfs   |
+|            |            ||      |       |               |          |
+|      Spikformer + SEMM      |    128     | CIFAR10 |  4   |  400  |     85.81     |  phase   |
+|   Spikformer + SEMM     |    128     | CIFAR10 |  4   |  400  |     83.04     |   rate   |
+|    Spikformer + SEMM     |    128     | CIFAR10 |  4   |  400  |     83.37     |   ttfs   |
 
 #### Meta-Transformer Test
 **ssa/sdsa**: Spiking Attention from originial Spikformer/SDT

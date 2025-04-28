@@ -75,7 +75,7 @@ seed: 42
 log_interval: 200
 
 # log dir
-output: "/home/shensicheng/log/SpikingTransformerBenchmark/meta-test/Spikformer"
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/Spikformer"
 
 # device
-device: 5
+device: 2

@@ -48,7 +48,7 @@ depths: 2
 
 #meta transformer layer
 embed_layer: 'SPS'
-attn_layer: 'repconv_attn'
+attn_layer: 'SDSA'
 
 # node
 tau: 2.0
@@ -76,7 +76,7 @@ seed: 42
 log_interval: 200
 
 # device
-device: 1
+device: 4
 
 # log dir
-output: "/home/shensicheng/log/SpikingTransformerBenchmark/meta-test/SDT"
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/SDT"
