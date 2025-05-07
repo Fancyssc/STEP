@@ -45,16 +45,11 @@ mlp_drop: 0.0
 attn_drop: 0.0
 depths: 4
 
-#meta transformer layer
-embed_layer: 'SPS'
-attn_layer: 'SSA'
-
-
 # node
 tau: 2.0
 threshold: 1.0
 act_function: SigmoidGrad
-node_type: LIFNode
+node_type: KLIFNode
 alpha: 4.0
 
 # train hyperparam
@@ -75,7 +70,7 @@ seed: 42
 log_interval: 200
 
 # log dir
-output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/Spikformer"
+output: "/mnt/home/fenglinghao/log/SpikingTransformerBenchmark/cls/neuron_model"
 
 # device
 device: 0
