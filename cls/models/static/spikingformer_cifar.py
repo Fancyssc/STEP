@@ -300,4 +300,5 @@ def spikingformer_cifar(pretrained=False,**kwargs):
     model.default_cfg = _cfg()
     return model
 
+# for meta-transformer
 

@@ -1,0 +1,75 @@
+# dataset
+data_dir: "/home/shensicheng/datasets/MNIST"
+dataset: psmnist
+num_classes: 10
+img_size: 28
+sequence_length: 784
+
+#data augmentation
+mean:
+    - 0.1307
+    - 0.1307
+    - 0.1307
+std:
+    - 0.3081
+    - 0.3081
+    - 0.3081
+crop_pct: 1.0
+scale:
+    - 1.0
+    - 1.0
+color_jitter: 0.
+ratio: [1.0,1.0]
+interpolation: bicubic
+train_interpolation: bicubic
+epochs: 400   #epochs
+reprob: 0.25
+remode: const
+
+# model structure
+model: "spikformer_cifar"
+step: 4
+patch_size: 4
+in_channels: 1
+embed_dim: 384
+num_heads: 12
+mlp_ratio: 4
+attn_scale: 0.125
+mlp_drop: 0.0
+attn_drop: 0.0
+depths: 4
+
+#meta transformer layer
+embed_layer: 'sequential_embed'
+attn_layer: 'SSA'
+
+
+# node
+tau: 2.0
+threshold: 1.0
+act_function: SigmoidGrad
+node_type: LIFNode
+alpha: 4.0
+
+# train hyperparam
+amp: True
+batch_size: 128
+val_batch_size: 128
+lr: 5e-4
+min_lr: 1e-5
+sched: cosine
+weight_decay: 6e-2
+cooldown_epochs: 10
+warmup_epochs: 20
+warmup_lr: 0.00001
+opt: adamw
+smoothing: 0.1
+workers: 16
+seed: 42
+log_interval: 200
+
+# log dir
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/test/Spikformer"
+
+# device
+device: 5

@@ -45,6 +45,11 @@ mlp_drop: 0.0
 attn_drop: 0.0
 depths: 4
 
+#meta transformer layer
+embed_layer: 'SPS'
+attn_layer: 'SSA'
+
+
 # node
 tau: 2.0
 threshold: 1.0

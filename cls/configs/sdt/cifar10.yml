@@ -34,7 +34,7 @@ model-ema: False
 model-ema-decay: 0.9998
 
 #model structure
-model: "std_cifar"
+model: "sdt_cifar"
 step: 4
 patch_size: 4
 in_channels: 3
@@ -45,6 +45,10 @@ attn_scale: 0.125
 mlp_drop: 0.0
 attn_drop: 0.0
 depths: 2
+
+#meta transformer layer
+embed_layer: 'SPS'
+attn_layer: 'SDSA'
 
 # node
 tau: 2.0

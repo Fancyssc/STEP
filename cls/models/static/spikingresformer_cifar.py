@@ -3,15 +3,6 @@ from ..utils.node import *
 from typing import Any, List, Mapping
 from timm.models.registry import register_model
 
-# class print_module(nn.Module):
-#     def __init__(self, test=1):
-#         super().__init__()
-#         self.test = test
-#
-#     def forward(self, x):
-#         print(x.shape)
-#         return x
-
 
 class GWFFN(BaseModule):
     def __init__(self, step=4, encode_type='direct', in_channels=3,num_conv=1,group_size=64, ratio=4,
@@ -244,12 +235,7 @@ class SpikingResformer(BaseModule):
         return self.load_state_dict(_state_dict, strict=False)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # if x.dim() != 5:
-        #     x = x.unsqueeze(0).repeat(self.T, 1, 1, 1, 1)
-        #     assert x.dim() == 5
-        # else:
-        #     #### [B, T, C, H, W] -> [T, B, C, H, W]
-        #     x = x.transpose(0, 1)
+
         x = self.encoder(x) # TB C H W
         x = self.prologue(x)
         x = self.layers(x)

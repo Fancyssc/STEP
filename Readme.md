@@ -1,144 +1,60 @@
 # Spiking Transformer Benchmark
-English | [简体中文](Readme_CN.md)
 
-This is based on the Spiking Transformer framework developed by [BrainCog](https://github.com/BrainCog-X/Brain-Cog). The framework integrates most of the existing open-source Spiking Transformers and their evaluation results on the corresponding datasets.
-Our code repository will remain updated. If you have any questions, please feel free to contact us.
+This repository, built upon the **[BrainCog](https://github.com/BrainCog-X/Brain-Cog)** framework, serves to reproduce existing open-source Spiking Transformer models and provide standardized evaluation results across multiple tasks.
 
+- Classification: [Here](cls/Readme.md)
+- Segmentation: [Here](seg/Readme.md)
+- Detection: [Here](det/Readme.md)
+## Features
 
-## Classification
+- **BrainCog-based**: Integrates and reproduces state-of-the-art Spiking Transformer implementations.
+- **Multi-task support**: Includes classification (`cls`) and segmentation (`seg`) submodules, with object detection (`det`) forthcoming.
+- **Standardized Evaluation**: Offers unified training and testing pipelines for each task, yielding comparative performance metrics.
+- **Extensibility**: Modular design and clear directory structure make it straightforward to add new models and tasks.
 
-### Implemented & To-implement Models
-The listed results display the performance of models on different datasets. The results are based on the original papers and the corresponding datasets. The results are updated regularly. If you have any questions, please feel free to contact us.
+## Repository Structure
 
-To emphasize, if no special note, the default size of model is ```3-384``` for CIFAR10/100 and ```8-768``` for ImageNet-1K. The default step is ```4``` for both datasets.
-The default size of model is ```2-512``` for CIFAR10-DVS and N-Cal101. The default step is ```10``` for both datasets.
-
-|                Model                |                                                                                  Pub. Info.                                                                                  |             CIFAR10/100             |     ImageNet-1K      |         CIFAR10-DVS         | N-Cal101 |
-|:-----------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------:|:--------------------:|:---------------------------:|:--------:|
-|             Spikformer              |                                                                [ICLR 2023](https://arxiv.org/abs/2209.15425)                                                                 |            95.41/ 78.21             |        74.81         |            78.9             |    -     |
-|              QKFormer               |                                                               [NeurIPS 2024](https://arxiv.org/abs/2403.16552)                                                               |            96.18/ 81.15             | 85.65 ```(10-786)``` |      84.0```(T=16)```       |    -     |
-|            Spikingformer            |                                                                  [Arxiv](https://arxiv.org/abs/2304.11954)                                                                   |            95.81/ 79.21             |        75.85         |            79.9             |    -     |
-|              SGLFormer              |                           [Frontiers in Neuroscience](https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2024.1371290/full)                            |            96.76/ 82.26             |        83.73         |            82.9             |    -     |         
-|     Spiking Wavelet Transforemr     |                                                  [ECCV 2024](https://link.springer.com/chapter/10.1007/978-3-031-73116-7_2)                                                  |             96.1/ 79.3              | 75.34 ```(8-512)```  |            82.9             |  88.45   |
-|  Spike-driven Transformer(SDT v1)   |                     [NeurIPS 2023](https://proceedings.neurips.cc/paper_files/paper/2023/hash/ca0f5358dbadda74b3049711887e9ead-Abstract-Conference.html)                     |       95.6/ 78.4```(2-512)```       |        77.07         |      80.0 ```(T=16)```      |    -     |
-| Spike-driven Transformer v2(SDT v2) |                                                                [ICLR 2024](https://arxiv.org/abs/2404.03663)                                                                 |       95.6/ 78.4```(2-512)```       |        77.07         |      80.0 ```(T=16)```      |    -     |
-|          Spikformer + SEMM          |                                                          [NeurIPS 2024](https://openreview.net/forum?id=WcIeEtY3AG)                                                          |            95.78/ 79.04             | 75.93 ```(8-512)```  |            82.32            |    -     |
-|          SpikingResformer           | [CVPR 2024](https://openaccess.thecvf.com/content/CVPR2024/html/Shi_SpikingResformer_Bridging_ResNet_and_Vision_Transformer_in_Spiking_Neural_Networks_CVPR_2024_paper.html) | 97.40/ 85.98```Transfer Learning``` |        79.40         | 84.8```Transfer Learning``` |    -     |    
-|                 TIM                 |                                                        [IJCAI 2024](https://www.ijcai.org/proceedings/2024/0347.pdf)                                                         |                  -                  |          -           |            81.6             |  79.00   |
-More models are to be implemented soon...
-
-
-### Experiment Results
-The default neuron node used in spiking transformers are `LIFNode(tau=2.,thres=1.0,Sigmoid_Grad(alpha=4.))` and the models are in the mode of `layer by layer`. If any 
-special conditions are considered, it will be noted in the supp. of the table.
-
-Other hyper-param setting are following the original paper.
-#### CIFAR 10
-|       Model       | Batch-Size | Dataset | Step | Epoch | Result(Acc@1) |          supp.          |
-|:-----------------:|:----------:|:-------:|:-------:|:-----:|:-------------:|:-----------------------:|
-|    Spikformer     |    128     | CIFAR10 | 4 |  400  |     95.12     |            -            |
-|                   |            |         |||
-|        SDT        |     64     | CIFAR10 | 4 |  300  |     95.66     |            -            |
-|                   |            |         |||
-|     QKFormer      |     64     | CIFAR10 | 4 |  400  |     96.48     |            -            |
-|                   |            |         |||
-|   Spikingformer   |    128     | CIFAR10 | 4 |  400  |     95.53     |            -            |
-|                   |            |         |||
-| Spikformer + SEMM |    128     | CIFAR10 | 4 |  400  |     94.98     |            -            |
-|                   |            |         |||
-|  Spiking Wavelet  |    128     | CIFAR10 | 4 |  400  |     95.31     |            -            |
-|                   |            |         |||
-|     SGLFormer     |     16     | CIFAR10 | 4 |  400  |       -       |            -            |
-|                   |            |         |||
-
-#### CIFAR 100
-|       Model       | Batch-Size | Dataset  | Step | Epoch | Result(Acc@1) |          supp.          |
-|:-----------------:|:----------:|:--------:|:-------:|:-----:|:-------------:|:-----------------------:|
-|    Spikformer     |    128     | CIFAR100 | 4 |  400  |     77.37     |            -            |
-|                   |            |          |||
-|        SDT        |     64     | CIFAR10  | 4 |  300  |     79.18     |            -            |
-|                   |            |          |||
-|     QKFormer      |     64     | CIFAR100 | 4 |  400  |     81.05     |            -            |
-|                   |            |          |||
-|   Spikingformer   |    128     | CIFAR100 | 4 |  400  |     79.12     |            -            |
-|                   |            |          |||
-| Spikformer + SEMM |    128     | CIFAR100 | 4 |  400  |     77.59     |            -            |
-|                   |            |          |||
-|  Spiking Wavelet  |    128     | CIFAR100 | 4 |  400  |     76.99     |            -            |
-|                   |            |          |||
-|     SGLFormer     |     16     | CIFAR100 | 4 |  400  |       -       |            -            |
-|                   |            |          |||
-#### ImageNet-1K
-to be updated
-
-### Guidelines
-#### Code Environment
-1. **The path configuration for your code repository should be as follows.**
-```angular2html
-.
-├── Readme.md
-└── cls
-    ├── configs
-    │   └── spikformer
-    │       ├── cifar10.yml
-    │       ├── cifar100.yml
-    │       ├── imgnet.yml
-    │   └── ...
-    ├── data
-    │   ├── aa_snn.py
-    │   ├── loader.py
-    │   └── transforms_factory.py
-    ├── models
-    │   └── static
-    │       ├── spikformer_cifar.py
-    │       └── spikformer_img.py
-    │       └── ...
-    ├── requirements.txt 
-    ├── train.py
-    └── utils
-        ├── __init__.py
-        └── node.py
+```plaintext
+Spiking-Transformer-Benchmark/
+├── cls/               # Classification submodule
+│   ├── README.md      
+│   ├── configs/     
+│   ├── datasets/      
+│   └── ...
+├── seg/               # Segmentation submodule 
+│   ├── README.md      
+│   ├── configs/       
+│   ├── mmseg      
+│   └── ...
+├── det/               # Object detection submodule 
+│   └── README.md      
+└── README.md          
 ```
 
-2. **Install the required packages.**
-```angular2html
-    conda create -n [your_env_name] python=3.8 -y
-    conda activate [your_env_name]
-    pip install -r requirements.txt
+## Installation
+
+To get started, clone the repository and install the required dependencies:
+
+```bash
+git clone https://github.com/YourUsername/Spiking-Transformer-Benchmark.git
+
 ```
+For the **seg** and **cls** tasks, different environment requirements apply. Please refer to the corresponding README files in each subdirectory for details.
 
-3. **Configure your model**
-
-    To configure your model and place it under ```models/static``` or ```model/dvs``` directory, along with registering the model using timm‘s register function.
-    
-    To write config files and place them under ```configs/[your_model]``` directory, the format should **strictly** flollow the format of the existing config files. We highly recommend this method which keeps structures of all ```.yml``` files clear and consistent. The reason for separating model configuration and training hyperparameters is to facilitate debugging and make the tuning process easier.
-    
-    Eventually, to import the registered model in ```train.py```.
+> **Prerequisites**: Python 3.8 or above, PyTorch, and BrainCog.
 
 
-4. **Run the training script**
+## Contributing
 
-Since dynamic and static datasets typically use different loading methods and data augmentation techniques, most models employ two separate scripts with corresponding augmentation strategies. Therefore, we also divide the scripts into two here.
+Contributions are highly appreciated! To contribute:
 
-**For Static Datasets:**
-```angular2html
-    python train.py --config configs/[your_model]/[your_dataset].yml
-```
+1. Fork the repository and create a new branch for your feature or fix.
+2. Implement your changes, including examples and documentation.
+3. Ensure all tests pass and submit a pull request.
 
+## Contact
 
+If you have questions, suggestions, or encounter issues, feel free to reach out to us by opening an issue.
 
-**For DVS Datasets:**
-```angular2html
-    python train_dvs.py --config configs/[your_model]/[your_dataset].yml 
-```
-
-### Supported Datasets
-|                                                 Dataset                                                 |  Type  | Mission | |                                                    Dataset                                                    |  Type  | Mission  |
-|:-------------------------------------------------------------------------------------------------------:|:------:|:-------:|:-:|:-------------------------------------------------------------------------------------------------------------:|:------:|:--------:|
-|                                              [CIFAR10 ](https://www.cs.toronto.edu/~kriz/cifar.html)                                               | Static |   cls   | |                                                 [CIFAR100](https://www.cs.toronto.edu/~kriz/cifar.html)                                                  | Static |   cls    |
-|                                 [ImageNet](https://www.image-net.org/)                                  | Static |   cls   | |                                  [MNIST](http://yann.lecun.com/exdb/mnist/)                                   | Static |   cls    |
-|                                                                                                         |        |         | |                                                                                                               |        |          |
-| [CIFAR10-DVS](https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2017.00309/full) |  DVS   |   cls   | | [DVS-Gesture](https://research.ibm.com/publications/a-low-power-fully-event-based-gesture-recognition-system) |  DVS   |   cls    | 
-|                      [NCARS](https://www.prophesee.ai/2018/03/13/dataset-n-cars/)                       |  DVS   |   cls   | |                     [N-CALTECH101](https://www.garrickorchard.com/datasets/n-caltech101)                      |  DVS   |   cls    |
-|                            [HMDB51-DVS](https://arxiv.org/pdf/1910.03579v2)                             |  DVS   |   cls   | |                               [UCF101-DVS](https://arxiv.org/pdf/1910.03579v2)                                |  DVS   |   cls    |
+Thank you for using the Spiking Transformer Benchmark. We hope this project accelerates your research and development!
 
