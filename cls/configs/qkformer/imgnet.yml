@@ -1,3 +1,5 @@
+# for QKFormer on ImageNet (depth=10, hidden_dim=384)
+# python train.py --config configs/qkformer/imgnet.yml
 # dataset and model name
 data_dir: /mnt/data/datasets/ILSVRC2012
 dataset: imagenet
@@ -30,12 +32,12 @@ reprob: 0.25
 remode: const
 
 # model structure
-model: "spikformer_imagenet"
+model: "qkformer_imagenet"
 step: 4
 patch_size: 16
 in_channels: 3
 embed_dim: 512
-num_heads: 8
+num_heads: 6
 mlp_ratio: 4
 attn_scale: 0.125
 mlp_drop: 0.0
@@ -51,24 +53,23 @@ alpha: 4.0
 
 # train hyperparam
 amp: True
-batch_size: 24  # 24*8
-val_batch_size: 24
-lr: 5e-4
-min_lr: 1e-5
+batch_size: 32  # 32*8
+val_batch_size: 32
+lr: 0.0006  # eff_bs=256 (world_size=8), lr=blr*256/256=0.0006
+min_lr: 1e-6
 sched: cosine
 weight_decay: 5e-2
 epochs: 300
 cooldown_epochs: 10
-warmup_epochs: 20
+warmup_epochs: 5
 warmup_lr: 0.000001
 opt: adamw
 smoothing: 0.1
-workers: 8
+workers: 16
 seed: 42
 
 # log dir
-output: "/mnt/home/fenglinghao/log/SpikingTransformerBenchmark/cls/Spikformer"
-
+output: "/mnt/home/fenglinghao/log/SpikingTransformerBenchmark/cls/QKFormer"
 
 # device
 device: 0
