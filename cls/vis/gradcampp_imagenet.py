@@ -3,6 +3,8 @@ import sys
 
 sys.path.append(os.getcwd())
 
+import argparse
+
 from torchvision import datasets
 from timm.data.transforms_factory import create_transform
 import matplotlib.pyplot as plt
@@ -13,6 +15,7 @@ from pytorch_grad_cam.utils.image import show_cam_on_image
 
 import torch
 import numpy as np
+from omegaconf import OmegaConf
 
 
 def reshape_transform(tensor):
@@ -29,11 +32,33 @@ def reshape_transform(tensor):
     return tensor
 
 
+def load_model(model_config):
+    if model_config.name == "qkformer":
+        from cls.models.static.qkformer_imagenet import qkformer_imagenet
+
+        model = qkformer_imagenet()
+    elif model_config.name == "spikformer":
+        from cls.models.static.spikformer_imagenet import spikformer_imagenet
+
+        model = spikformer_imagenet()
+    else:
+        raise ValueError("Invaild model name")
+
+    return model
+
+
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", required=True)
+    args = parser.parse_args()
+    config = OmegaConf.load(args.config)
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    ckpt_path = "/home/shensicheng/log/SpikingTransformerBenchmark/cls/Spikformer/spikformer_cifar--cifar10--LIFNode--thres_1.0--tau_2.0--seed_42--epoch_400--20250325-103608/model_best.pth.tar"
-    model = spikformer_cifar(pretrained=False)
+    ckpt_path = config.ckpt_path
+
+    model = load_model(config.model)
     model.load_state_dict(
         torch.load(ckpt_path, map_location="cpu", weights_only=False)["state_dict"],
         strict=False,
@@ -44,19 +69,19 @@ if __name__ == "__main__":
     # 选择 MLP 层中添加的 Identity 层，假设在第一个 Block 的 MLP 中
     target_layer = model.block[-1].mlp.id
 
-    # 加载 CIFAR10 数据集中的一张图片（测试集）
+    # 加载 Imagenet 数据集中的一张图片（测试集）
     transform = create_transform(
-        input_size=32,
+        input_size=224,
         is_training=False,
-        mean=[0.5071, 0.4867, 0.4408],
-        std=[0.2675, 0.2565, 0.2761],
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225],
         crop_pct=1.0,
         interpolation="bicubic",
         color_jitter=0.0,
         auto_augment="rand-m9-n1-mstd0.4-inc1",
     )
-    dataset = datasets.CIFAR10(
-        root="/data/datasets/CIFAR10/", train=False, download=True, transform=transform
+    dataset = datasets.ImageNet(
+        root=config.data_path, train=False, download=False, transform=transform
     )
     img_tensor, label = dataset[1]
     input_img = img_tensor.unsqueeze(0).to(device)
@@ -73,26 +98,16 @@ if __name__ == "__main__":
     )[0]
 
     # 反归一化原图
-    mean = torch.tensor([0.5071, 0.4867, 0.4408]).view(3, 1, 1)
-    std = torch.tensor([0.2675, 0.2565, 0.2761]).view(3, 1, 1)
+    mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
+    std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
     img_denorm = img_tensor.clone().detach().cpu() * std + mean
     img_np = img_denorm.permute(1, 2, 0).numpy()
     img_np = np.clip(img_np, 0, 1)
 
     plt.figure(figsize=(12, 6))
 
-    cifar10_classes = [
-        "airplane",
-        "automobile",
-        "bird",
-        "cat",
-        "deer",
-        "dog",
-        "frog",
-        "horse",
-        "ship",
-        "truck",
-    ]
+    imagenet_classes = config.imagenet_classes
+
     # 原图
     plt.subplot(1, 2, 1)
     plt.imshow(img_np)
@@ -111,13 +126,13 @@ if __name__ == "__main__":
     plt.subplot(1, 2, 2)
     plt.imshow(cam_image)
     plt.title(
-        f"GradCam++ Heatmap (Predicted class: {cifar10_classes[pred_class.item()]})"
+        f"GradCam++ Heatmap (Predicted class: {imagenet_classes[pred_class.item()]})"
     )
     plt.axis("off")
 
     plt.tight_layout()
     plt.savefig(
-        "/home/shensicheng/log/SpikingTransformerBenchmark/vis/Spikformer/test1.png",
+        config.save_path,
         dpi=300,
         bbox_inches="tight",
     )
