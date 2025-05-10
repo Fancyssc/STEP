@@ -6,6 +6,7 @@ sys.path.append(os.getcwd())
 import argparse
 
 from torchvision import datasets
+from timm.data import create_dataset
 from timm.data.transforms_factory import create_transform
 import matplotlib.pyplot as plt
 
@@ -37,14 +38,16 @@ def load_model(model_config):
         from cls.models.static.qkformer_imagenet import qkformer_imagenet
 
         model = qkformer_imagenet()
+        tgt_str = "model.stage3[-1].mlp.id"
     elif model_config.name == "spikformer":
         from cls.models.static.spikformer_imagenet import spikformer_imagenet
 
         model = spikformer_imagenet()
+        tgt_str = None
     else:
         raise ValueError("Invaild model name")
 
-    return model
+    return model, tgt_str
 
 
 if __name__ == "__main__":
@@ -58,7 +61,7 @@ if __name__ == "__main__":
 
     ckpt_path = config.ckpt_path
 
-    model = load_model(config.model)
+    model,tgt_str = load_model(config.model)
     model.load_state_dict(
         torch.load(ckpt_path, map_location="cpu", weights_only=False)["state_dict"],
         strict=False,
@@ -67,7 +70,10 @@ if __name__ == "__main__":
     model.eval()
 
     # 选择 MLP 层中添加的 Identity 层，假设在第一个 Block 的 MLP 中
-    target_layer = model.block[-1].mlp.id
+    if tgt_str is None:
+        target_layer = model.block[-1].mlp.id
+    else:
+        target_layer = eval(tgt_str)
 
     # 加载 Imagenet 数据集中的一张图片（测试集）
     transform = create_transform(
@@ -80,9 +86,10 @@ if __name__ == "__main__":
         color_jitter=0.0,
         auto_augment="rand-m9-n1-mstd0.4-inc1",
     )
-    dataset = datasets.ImageNet(
-        root=config.data_path, train=False, download=False, transform=transform
-    )
+    dataset = create_dataset("imagenet",root=config.data_path,is_training=False,transform=transform)
+    # dataset = datasets.ImageNet(
+    #     root=config.data_path, split='train', transform=transform
+    # )
     img_tensor, label = dataset[1]
     input_img = img_tensor.unsqueeze(0).to(device)
 

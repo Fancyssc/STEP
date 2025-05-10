@@ -44,6 +44,8 @@ class MLP(BaseModule):
     ):
         super().__init__(step=step, encode_type=encode_type)
 
+        self.id = torch.nn.Identity()
+
         self.in_features = in_features
         self.mlp_ratio = mlp_ratio
         self.out_features = out_features or in_features
@@ -77,6 +79,8 @@ class MLP(BaseModule):
 
     def forward(self, x):
         self.reset()
+
+        x = self.id(x)
 
         TB, C, H, W = x.shape
 
