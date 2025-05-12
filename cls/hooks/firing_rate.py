@@ -32,7 +32,13 @@ def record_output_lif(module, input, output):
 
 
 def cal_firing_rate():
-    raise NotImplementedError
+    all_slots = 0
+    all_spikes = 0
+    for t in neuron_outputs:
+        all_slots += t.numel()
+        all_spikes += t.sum()
+    fr = all_spikes/all_slots
+    return fr.item()
 
 
 if __name__ == "__main__":
@@ -55,4 +61,8 @@ if __name__ == "__main__":
 
     for name, submodule in model.named_modules():
         if isinstance(submodule, LIFNode):
-            print(name)
+            submodule.register_forward_hook(record_output_lif)
+
+    dummy_data = torch.ones((1,3,224,224),device=device)
+    model(dummy_data)
+    print(cal_firing_rate())
