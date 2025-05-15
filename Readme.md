@@ -91,7 +91,7 @@ For the **seg** and **cls** tasks, different environment requirements apply. Ple
   If you run into any issues, have questions about STEP, or simply want to share suggestions, please open a GitHub Issue or start a discussion thread. We monitor the repository regularly and aim to respond within a few business days.
 
 - **Integrate Your Model**  
-  Have an exciting Spiking Transformer variant or related module you’d like to see supported? We welcome external contributions! Open an Issue describing your model, its licensing, and any specific requirements, or email the maintainers listed in [`MAINTAINERS.md`](./MAINTAINERS.md). We’ll coordinate with you to add the necessary adapters, documentation, and tests.
+  Have an exciting Spiking Transformer variant or related module you’d like to see supported? We welcome external contributions! Open an Issue describing your model, its licensing, and any specific requirements, or email the maintainers. We’ll coordinate with you to add the necessary adapters, documentation, and tests.
 
 We look forward to working with the community to make STEP an ever-stronger platform for neuromorphic research.
 
