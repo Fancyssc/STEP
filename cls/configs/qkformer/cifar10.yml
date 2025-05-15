@@ -53,8 +53,8 @@ alpha: 4.0
 
 # train hyperparam
 amp: True
-batch_size: 64
-val_batch_size: 64
+batch_size: 128
+val_batch_size: 128
 lr: 1e-3
 min_lr: 1e-5
 sched: cosine
@@ -69,7 +69,7 @@ seed: 42
 log_interval: 200
 
 # device
-device: 0
+device: 2
 
 # log dir
 output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/QKFormer"

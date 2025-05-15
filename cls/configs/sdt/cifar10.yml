@@ -22,7 +22,7 @@ interpolation: bicubic
 train_interpolation: bicubic
 aa: rand-m9-n1-mstd0.4-inc1
 color_jitter: 0.5
-epochs: 300   #epochs
+epochs: 400   #epochs
 mixup: 0.5
 mixup_off_epoch: 200
 mixup_prob: 1.0
@@ -60,8 +60,8 @@ alpha: 4.0
 # train hyperparam
 amp: False
 channels-last: False
-batch_size: 64
-val_batch_size: 64
+batch_size: 128
+val_batch_size: 128
 lr: 3e-4
 min_lr: 1e-5
 sched: cosine
@@ -76,7 +76,7 @@ seed: 42
 log_interval: 200
 
 # device
-device: 4
+device: 0
 
 # log dir
 output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/SDT"

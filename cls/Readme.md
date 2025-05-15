@@ -38,9 +38,9 @@ Other hyper-param setting are following the original paper.
 |:-----------------:|:----------:|:-------:|:-------:|:-----:|:-------------:|:----------------------------------------------------:|
 |    Spikformer     |    128     | CIFAR10 | 4 |  400  |     95.12     |                          -                           |
 |                   |            |         ||       |
-|        SDT        |     64     | CIFAR10 | 4 |  300  |     95.66     |                          -                           |
+|        SDT        |    128     | CIFAR10 | 4 |  400  |     95.77     |                          -                           |
 |                   |            |         ||       |
-|     QKFormer      |     64     | CIFAR10 | 4 |  400  |     96.48     |                          -                           |
+|     QKFormer      |    128     | CIFAR10 | 4 |  400  |     96.24     |                          -                           |
 |                   |            |         ||       |
 |   Spikingformer   |    128     | CIFAR10 | 4 |  400  |     95.53     |                          -                           |
 |                   |            |         ||       |
@@ -50,7 +50,7 @@ Other hyper-param setting are following the original paper.
 |                   |            |         ||       |
 |     SGLFormer     |     16     | CIFAR10 | 4 |  400  |     95.88     |                          -                           |
 |                   |            |         ||       |
-| Spikingresformer  |    128     | CIFAR10 | 4 |  600  |     95.39     |          Transfer Learning Used Originally           |
+| Spikingresformer  |    128     | CIFAR10 | 4 |  400  |     95.69     |          Transfer Learning Used Originally           |
 |                   |            |         ||       |
 
 #### CIFAR 100
@@ -58,9 +58,9 @@ Other hyper-param setting are following the original paper.
 |:-----------------:|:----------:|:--------:|:-------:|:-----:|:-------------:|:---------------------------------:|
 |    Spikformer     |    128     | CIFAR100 | 4 |  400  |     77.37     |                 -                 |
 |                   |            |          ||       |
-|        SDT        |     64     | CIFAR10  | 4 |  300  |     79.18     |                 -                 |
+|        SDT        |    128     | CIFAR10  | 4 |  400  |     78.29     |                 -                 |
 |                   |            |          ||       |
-|     QKFormer      |     64     | CIFAR100 | 4 |  400  |     81.05     |                 -                 |
+|     QKFormer      |    128     | CIFAR100 | 4 |  400  |     79.72     |                 -                 |
 |                   |            |          ||       |
 |   Spikingformer   |    128     | CIFAR100 | 4 |  400  |     79.12     |                 -                 |
 |                   |            |          ||       |
@@ -70,7 +70,7 @@ Other hyper-param setting are following the original paper.
 |                   |            |          ||       |
 |     SGLFormer     |     16     | CIFAR100 | 4 |  400  |     80.61     |                 -                 |
 |                   |            |          ||       |
-| Spikingresformer  |    128     | CIFAR100 | 4 |  600  |     78.29     | Transfer Learning Used Originally |
+| Spikingresformer  |    128     | CIFAR100 | 4 |  400  |     79.45     | Transfer Learning Used Originally |
 |                   |            |          ||       |
 
 #### Sequential Image Classification
@@ -96,19 +96,16 @@ Other hyper-param setting are following the original paper.
 | Spikformer |    128     | CIFAR10 |  4   |  400  |     95.41     |  GLIF  |
 | Spikformer |    128     | CIFAR10 |  4   |  400  |     95.85     |  KLIF  |
 | Spikformer |    128     | CIFAR10 |  4   |  400  |     96.06     |  PLIF  |
-| Spikformer |    128     | CIFAR10 |  4   |  400  |     95.04     |  PSN   |
 |            |            ||      |       |               |        |
-|    SDT     |     64     | CIFAR10 |  4   |  300  |     95.51     |  CLIF  |
-|    SDT     |     64     | CIFAR10 |  4   |  300  |     95.11     |  GLIF  |
-|    SDT     |     64     | CIFAR10 |  4   |  300  |     94.79     |  KLIF  |
-|    SDT     |     64     | CIFAR10 |  4   |  300  |     95.24     |  PLIF  |
-|    SDT     |     64     | CIFAR10 |  4   |  300  |     93.59     |  PSN   |
+|    SDT     |    128     | CIFAR10 |  4   |  400  |     95.49     |  CLIF  |
+|    SDT     |    128     | CIFAR10 |  4   |  400  |     95.45     |  GLIF  |
+|    SDT     |    128     | CIFAR10 |  4   |  400  |     95.63     |  KLIF  |
+|    SDT     |    128     | CIFAR10 |  4   |  400  |     95.91     |  PLIF  |
 |            |            ||      |       |               |        |
 |      Spikformer + SEMM      |    128     | CIFAR10 |  4   |  400  |     95.44     |  CLIF  |
 |   Spikformer + SEMM     |    128     | CIFAR10 |  4   |  400  |     95.78     |  GLIF  |
 |    Spikformer + SEMM     |    128     | CIFAR10 |  4   |  400  |     95.59     |  KLIF  |
 |  Spikformer + SEMM    |    128     | CIFAR10 |  4   |  400  |     95.66     |  PLIF  |
-|   Spikformer + SEMM    |    128     | CIFAR10 |  4   |  400  |     94.52     |  PSN   |
 
 
 #### Sequential Image Classification
@@ -134,9 +131,9 @@ Other hyper-param setting are following the original paper.
 | Spikformer |    128     | CIFAR10 |  4   |  400  |     82.83     |   rate   |
 | Spikformer |    128     | CIFAR10 |  4   |  400  |     82.10     |   ttfs   |
 |            |            ||      |       |               |          |
-|    SDT     |     64     | CIFAR10 |  4   |  300  |     85.15     |  phase   |
-|    SDT     |     64     | CIFAR10 |  4   |  300  |     83.97     |   rate   |
-|    SDT     |     64     | CIFAR10 |  4   |  300  |     84.15     |   ttfs   |
+|    SDT     |    128     | CIFAR10 |  4   |  400  |     85.37     |  phase   |
+|    SDT     |    128     | CIFAR10 |  4   |  400  |     83.77     |   rate   |
+|    SDT     |    128     | CIFAR10 |  4   |  400  |     84.30     |   ttfs   |
 |            |            ||      |       |               |          |
 |      Spikformer + SEMM      |    128     | CIFAR10 |  4   |  400  |     85.81     |  phase   |
 |   Spikformer + SEMM     |    128     | CIFAR10 |  4   |  400  |     83.04     |   rate   |
@@ -149,41 +146,41 @@ Other hyper-param setting are following the original paper.
 
  **random_attn**: Query and Key are randomly initialized and not updated. 
 
- **vit_embed**: Using vanilla ViT embedding method and learnable position encoding.
+ **sps_1conv**: Using vanilla ViT embedding method and learnable position encoding.
 
- **conv2_embed**: Reduce the num. of conv layers from 4 to 2 in SPS of Spiking Transformer.
+ **sps_2conv**: Reduce the num. of conv layers from 4 to 2 in SPS of Spiking Transformer.
 
-|            Model            | Batch-Size |       Node        | Step | Seed | Result(Acc@1) |        supp.         |
-|:---------------------------:|:----------:|:-----------------:|:-------:|:----:|:-------------:|:--------------------:|
-|         Spikformer          |    128     |     Braincog      | 4 |  42  |     95.12     |         ssa          |
-|         Spikformer          |    128     |     Braincog      | 4 |  42  |     94.96     |     random_attn      |
-|         Spikformer          |    128     |     Braincog      | 4 |  42  |     78.21     |      vit_embed       |
-|         Spikformer          |    128     |     Braincog      | 4 |  42  |     91.92     |     conv2_embed      |
-|         Spikformer          |    128     |     Braincog      | 4 |  42  |     95.57     |        sdsa_3        |
-|         Spikformer          |    128     |     Braincog      | 4 |  42  |     89.97     |  sdsa_3 & vit_embed  |
-|         Spikformer          |    128     |     Braincog      | 4 |  42  |     93.43     | sdsa_3 & conv2_embed |
+|            Model            | Batch-Size |       Node        | Step | Seed | Result(Acc@1) |          supp.          |
+|:---------------------------:|:----------:|:-----------------:|:-------:|:----:|:-------------:|:-----------------------:|
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     95.12     |           ssa           |
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     94.96     |       random_attn       |
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     78.21     |        sps_1conv        |
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     91.92     |        sps_2conv        |
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     95.57     |         sdsa_3          |
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     89.97     |   sdsa_3 & vit_embed    |
+|         Spikformer          |    128     |     Braincog      | 4 |  42  |     93.43     |  sdsa_3 & conv2_embed   |
 |                             |            |                   ||      |
-|             SDT             |     64     |     Braincog      | 4 |  42  |     95.66     |         sdsa         |
-|             SDT             |     64     |     Braincog      | 4 |  42  |     96.48     |     random_attn      |
-|             SDT             |     64     |     Braincog      | 4 |  42  |     82.17     |      vit_embed       |
-|             SDT             |     64     |     Braincog      | 4 |  42  |     93.03     |     conv2_embed      |
-|             SDT             |     64     |     Braincog      | 4 |  42  |     96.48     |        sdsa_3        |
-|             SDT             |     64     |     Braincog      | 4 |  42  |     87.86     |  sdsa_3 & vit_embed  |
-|             SDT             |     64     |     Braincog      | 4 |  42  |     94.56     | sdsa_3 & conv2_embed |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     95.66     |          sdsa           |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     96.48     |       random_attn       |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     82.17     |        sps_1conv        |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     93.03     |        sps_2conv        |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     96.48     |         sdsa_3          |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     87.86     |   sdsa_3 & vit_embed    |
+|             SDT             |     64     |     Braincog      | 4 |  42  |     94.56     |  sdsa_3 & conv2_embed   |
 |                             |            |                   ||      |
 |      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     94.98     |           ssa           |
 |      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     95.57     |       random_attn       |
-|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     89.24     |        vit_embed        |
-|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     93.33     |       conv2_embed       |
-|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     95.83     |       sdsa_3       |
-|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     84.95    |        sdsa_3 & vit_embed        |
-|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     93.37     |       sdsa_3 & conv2_embed       |
+|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     89.24     |        sps_1conv        |
+|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     93.33     |        sps_2conv        |
+|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     95.83     |         sdsa_3          |
+|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     84.95    |   sdsa_3 & vit_embed    |
+|      Spikformer + SEMM      |    128     |     Braincog      | 4 |  42  |     93.37     |  sdsa_3 & conv2_embed   |
 |                             |            |                   ||      |
 |             ViT             |    128     |     Braincog      | 4 |  42  |     96.51     |        attention        |
-|             ViT             |    128     |     Braincog      | 4 |  42  |     90.89     |        vit_embed        |
+|             ViT             |    128     |     Braincog      | 4 |  42  |     90.89     |        sps_1conv        |
 |             ViT             |    128     |     Braincog      | 4 |  42  |     96.41     |       random_attn       |
-|             ViT             |    128     |     Braincog      | 4 |  42  |     95.0      |       conv2_embed       |
-|             ViT             |    128     |     Braincog      | 4 |  42  |     88.46     | vit_embed & random_attn |
+|             ViT             |    128     |     Braincog      | 4 |  42  |     95.0      |        sps_2conv        |
+|             ViT             |    128     |     Braincog      | 4 |  42  |     88.46     | sps_1conv & random_attn |
 
 #### ImageNet-1K
 to be updated

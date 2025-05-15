@@ -1,3 +1,4 @@
+
 from braincog.model_zoo.base_module import BaseModule
 from timm.models import register_model
 from timm.models.layers import trunc_normal_
@@ -226,15 +227,15 @@ class MLP(BaseModule):
 
 # Spikformer block
 class SDT_Block_s(nn.Module):
-    def __init__(self, embed_dim=384, num_heads=12, step=4, mlp_ratio=4., scale=0., attn_drop=0., attn_layer='SDSA',
-                 mlp_drop=0.,node=LIFNode,tau=2.0,act_func=SigmoidGrad,threshold=1.0,alpha=4.0,layer_by_layer=True):
+    def __init__(self, embed_dim=384, num_heads=12, step=4, mlp_ratio=4., scale=0., attn_drop=0.,
+                 attn_layer='SDSA', mlp_drop=0., node=LIFNode, tau=2.0, act_func=SigmoidGrad,
+                 threshold=1.0, alpha=4.0, layer_by_layer=True, **kwargs):
         super().__init__()
 
         if attn_layer in globals():
             self.attn = globals()[attn_layer](
                 embed_dim, step=step, num_heads=num_heads, attn_drop=attn_drop, scale=scale, node=node, tau=tau,
-                act_func=act_func, threshold=threshold, alpha=alpha, layer_by_layer=layer_by_layer
-            )
+                act_func=act_func, threshold=threshold, alpha=alpha, layer_by_layer=layer_by_layer, **kwargs)
         # self.layernorm1 = nn.LayerNorm(embed_dim)
         self.mlp = MLP(step=step,in_features=embed_dim,mlp_ratio=mlp_ratio,out_features=embed_dim,mlp_drop=mlp_drop,node=node,tau=tau,act_func=act_func,threshold=threshold,alpha=alpha,layer_by_layer=layer_by_layer)
         # self.layernorm2 = nn.LayerNorm(embed_dim)
@@ -269,10 +270,10 @@ class SDTV1(BaseModule):
                                                  sequence_length=sequence_length,
                                                  **kwargs)
 
-        block = nn.ModuleList([SDT_Block_s(step=step, embed_dim=embed_dim, attn_layer=attn_layer,
+        block = nn.ModuleList([SDT_Block_s(embed_dim=embed_dim, attn_layer=attn_layer,
                                            num_heads=num_heads, mlp_ratio=mlp_ratio,
                                            scale=scale, mlp_drop=mlp_drop, attn_drop=attn_drop,layer_by_layer=layer_by_layer,
-                                           node=node, tau=2.0, act_func=act_func, threshold=threshold,alpha=alpha)
+                                           node=node, tau=2.0, act_func=act_func, threshold=threshold,alpha=alpha, **kwargs)
 
                                for j in range(depths)])
 

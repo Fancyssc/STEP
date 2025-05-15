@@ -16,7 +16,7 @@ class Token_QK_Attention(BaseModule):
         self.num_heads = num_heads
         self.q_conv = nn.Conv1d(embed_dim, embed_dim, kernel_size=1, stride=1, bias=False)
         self.q_bn = nn.BatchNorm1d(embed_dim)
-        self.q_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,layer_by_layer=layer_by_layer,mem_detach=False)
+        self.q_lif = node()
 
         self.k_conv = nn.Conv1d(embed_dim, embed_dim, kernel_size=1, stride=1, bias=False)
         self.k_bn = nn.BatchNorm1d(embed_dim)

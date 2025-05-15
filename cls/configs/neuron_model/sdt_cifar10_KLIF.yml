@@ -1,5 +1,5 @@
 # dataset
-data_dir: /home/fenglinghao/data/datasets/CIFAR10
+data_dir: '/data/datasets/CIFAR10'
 dataset: torch/cifar10
 num_classes: 10
 img_size: 32
@@ -22,7 +22,7 @@ interpolation: bicubic
 train_interpolation: bicubic
 aa: rand-m9-n1-mstd0.4-inc1
 color_jitter: 0.5
-epochs: 300   #epochs
+epochs: 400   #epochs
 mixup: 0.5
 mixup_off_epoch: 200
 mixup_prob: 1.0
@@ -34,7 +34,7 @@ model-ema: False
 model-ema-decay: 0.9998
 
 #model structure
-model: "std_cifar"
+model: "sdt_cifar"
 step: 4
 patch_size: 4
 in_channels: 3
@@ -46,6 +46,10 @@ mlp_drop: 0.0
 attn_drop: 0.0
 depths: 2
 
+#meta transformer layer
+embed_layer: 'SPS'
+attn_layer: 'SDSA'
+
 # node
 tau: 2.0
 threshold: 1.0
@@ -56,8 +60,8 @@ alpha: 4.0
 # train hyperparam
 amp: False
 channels-last: False
-batch_size: 64
-val_batch_size: 64
+batch_size: 128
+val_batch_size: 128
 lr: 3e-4
 min_lr: 1e-5
 sched: cosine
@@ -72,7 +76,7 @@ seed: 42
 log_interval: 200
 
 # device
-device: 0
+device: 6
 
 # log dir
-output: "/home/fenglinghao/log/SpikingTransformerBenchmark/cls/neuron_model"
+output: "/home/shensicheng/log/SpikingTransformerBenchmark/neuron_model/KLIF"

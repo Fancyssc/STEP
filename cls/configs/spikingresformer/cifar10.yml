@@ -22,7 +22,7 @@ color_jitter: 0.
 interpolation: bicubic
 train_interpolation: bicubic
 aa: rand-m7-n1-mstd0.5-inc1
-epochs: 600   #epochs
+epochs: 400   #epochs
 mixup: 0.5
 mixup_off_epoch: 200
 mixup_prob: 1.0
@@ -73,4 +73,4 @@ log_interval: 200
 output: "/home/shensicheng/log/SpikingTransformerBenchmark/cls/Spikingresformer"
 
 # device
-device: 0
+device: 4
