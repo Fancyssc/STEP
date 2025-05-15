@@ -66,91 +66,92 @@ if __name__ == "__main__":
         torch.load(ckpt_path, map_location="cpu", weights_only=False)["state_dict"],
         strict=False,
     )
-    model = model.to(device)
-    model.eval()
+    print(model)
+    # model = model.to(device)
+    # model.eval()
 
-    # 选择 MLP 层中添加的 Identity 层，假设在第一个 Block 的 MLP 中
-    if tgt_str is None:
-        target_layer = model.block[-1].mlp.id
-    else:
-        target_layer = eval(tgt_str)
+    # # 选择 MLP 层中添加的 Identity 层，假设在第一个 Block 的 MLP 中
+    # if tgt_str is None:
+    #     target_layer = model.block[-1].mlp.id
+    # else:
+    #     target_layer = eval(tgt_str)
 
-    # 加载 Imagenet 数据集中的一张图片（测试集）
-    transform = create_transform(
-        input_size=224,
-        is_training=False,
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225],
-        crop_pct=1.0,
-        interpolation="bicubic",
-        color_jitter=0.0,
-        auto_augment="rand-m9-n1-mstd0.4-inc1",
-    )
-    dataset = create_dataset(
-        "imagenet", root=config.data_path, is_training=False, transform=transform
-    )
-    # dataset = datasets.ImageNet(
-    #     root=config.data_path, split='train', transform=transform
+    # # 加载 Imagenet 数据集中的一张图片（测试集）
+    # transform = create_transform(
+    #     input_size=224,
+    #     is_training=False,
+    #     mean=[0.485, 0.456, 0.406],
+    #     std=[0.229, 0.224, 0.225],
+    #     crop_pct=1.0,
+    #     interpolation="bicubic",
+    #     color_jitter=0.0,
+    #     auto_augment="rand-m9-n1-mstd0.4-inc1",
     # )
+    # dataset = create_dataset(
+    #     "imagenet", root=config.data_path, is_training=False, transform=transform
+    # )
+    # # dataset = datasets.ImageNet(
+    # #     root=config.data_path, split='train', transform=transform
+    # # )
 
-    imagenet_classes = config.imagenet_classes
-    # 使用 pytorch-grad-cam 库的 GradCAM++ 计算热图
-    cam_algorithm = GradCAMPlusPlus(
-        model=model,
-        target_layers=[target_layer],
-        reshape_transform=reshape_transform,
-    )
-    num_samples = 100
-    for i in range(num_samples):
-        img_tensor, label = dataset[i]
-        input_img = img_tensor.unsqueeze(0).to(device)
+    # imagenet_classes = config.imagenet_classes
+    # # 使用 pytorch-grad-cam 库的 GradCAM++ 计算热图
+    # cam_algorithm = GradCAMPlusPlus(
+    #     model=model,
+    #     target_layers=[target_layer],
+    #     reshape_transform=reshape_transform,
+    # )
+    # num_samples = 100
+    # for i in range(num_samples):
+    #     img_tensor, label = dataset[i]
+    #     input_img = img_tensor.unsqueeze(0).to(device)
 
-        output = model(input_img)
-        pred_class = output.argmax(dim=1)
+    #     output = model(input_img)
+    #     pred_class = output.argmax(dim=1)
 
-        grayscale_cam = cam_algorithm(
-            input_tensor=input_img, targets=[ClassifierOutputTarget(pred_class.item())]
-        )[0]
+    #     grayscale_cam = cam_algorithm(
+    #         input_tensor=input_img, targets=[ClassifierOutputTarget(pred_class.item())]
+    #     )[0]
 
-        # 反归一化原图
-        mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
-        std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
-        img_denorm = img_tensor.clone().detach().cpu() * std + mean
-        img_np = img_denorm.permute(1, 2, 0).numpy()
-        img_np = np.clip(img_np, 0, 1)
+    #     # 反归一化原图
+    #     mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
+    #     std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
+    #     img_denorm = img_tensor.clone().detach().cpu() * std + mean
+    #     img_np = img_denorm.permute(1, 2, 0).numpy()
+    #     img_np = np.clip(img_np, 0, 1)
 
-        plt.figure(figsize=(12, 6))
+    #     plt.figure(figsize=(12, 6))
 
-        # 原图
-        plt.subplot(1, 2, 1)
-        plt.imshow(img_np)
-        plt.title("Original Image")
-        plt.axis("off")
+    #     # 原图
+    #     plt.subplot(1, 2, 1)
+    #     plt.imshow(img_np)
+    #     plt.title("Original Image")
+    #     plt.axis("off")
 
-        # GradCam++ 热图叠加
-        # plt.subplot(1, 2, 2)
-        # plt.imshow(img_np)
-        # plt.imshow(grayscale_cam, cmap='turbo', alpha=0.4)
-        # plt.title(f"GradCam++ Heatmap (Predicted class: {cifar10_classes[pred_class.item()]})")
-        # plt.axis('off')
+    #     # GradCam++ 热图叠加
+    #     # plt.subplot(1, 2, 2)
+    #     # plt.imshow(img_np)
+    #     # plt.imshow(grayscale_cam, cmap='turbo', alpha=0.4)
+    #     # plt.title(f"GradCam++ Heatmap (Predicted class: {cifar10_classes[pred_class.item()]})")
+    #     # plt.axis('off')
 
-        # GradCam++ 热图叠加（使用官方 show_cam_on_image 方法）
-        cam_image = show_cam_on_image(
-            img_np, grayscale_cam, use_rgb=True, image_weight=0.6
-        )
-        plt.subplot(1, 2, 2)
-        plt.imshow(cam_image)
-        plt.title(
-            f"GradCam++ Heatmap (Predicted class: {imagenet_classes[pred_class.item()]})"
-        )
-        plt.axis("off")
+    #     # GradCam++ 热图叠加（使用官方 show_cam_on_image 方法）
+    #     cam_image = show_cam_on_image(
+    #         img_np, grayscale_cam, use_rgb=True, image_weight=0.6
+    #     )
+    #     plt.subplot(1, 2, 2)
+    #     plt.imshow(cam_image)
+    #     plt.title(
+    #         f"GradCam++ Heatmap (Predicted class: {imagenet_classes[pred_class.item()]})"
+    #     )
+    #     plt.axis("off")
 
-        plt.tight_layout()
-        save_path = os.path.join(config.save_path, f"{i}.png")
-        plt.savefig(
-            save_path,
-            dpi=300,
-            bbox_inches="tight",
-        )
-        print(f"Generated {save_path}")
-        # plt.show()
+    #     plt.tight_layout()
+    #     save_path = os.path.join(config.save_path, f"{i}.png")
+    #     plt.savefig(
+    #         save_path,
+    #         dpi=300,
+    #         bbox_inches="tight",
+    #     )
+    #     print(f"Generated {save_path}")
+    #     # plt.show()

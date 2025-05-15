@@ -1,11 +1,12 @@
 ##### General ########
-ckpt_path: ../log/SpikingTransformerBenchmark/cls/QKFormer/qkformer_imagenet--imagenet--LIFNode--thres_1.0--tau_2.0--seed_42--epoch_200--20250419-145730/model_best.pth.tar
+ckpt_path: /mnt/home/fenglinghao/log/SpikingTransformerBenchmark/cls/Spikformer/spikformer_imagenet--imagenet--LIFNode--thres_1.0--tau_2.0--seed_42--epoch_300--20250424-142917/model_best.pth.tar
 data_path: /mnt/data/datasets/ILSVRC2012
-save_path: /mnt/home/fenglinghao/SpikingTransformerBenchmark/cls/vis/results/
+save_path: /mnt/home/fenglinghao/SpikingTransformerBenchmark/cls/vis/results/spikformer
+T: 4
 
 ##### Model Config #######
 model:
-  name: qkformer
+  name: spikformer
 
 
 ##### ImageNet Classes ######

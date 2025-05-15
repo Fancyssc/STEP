@@ -65,42 +65,38 @@ pred_class = output.argmax(dim=1)
 cam_algorithm = GradCAMPlusPlus(
     model=model, target_layers=[target_layer], reshape_transform=reshape_transform
 )
-# grayscale_cam = cam_algorithm(input_tensor=input_img, targets=[ClassifierOutputTarget(pred_class.item())])[0]
-grayscale_cam = cam_algorithm(
-    input_tensor=input_img, targets=[ClassifierOutputTarget(pred_class.item())]
-)
-print(grayscale_cam.shape)
+grayscale_cam = cam_algorithm(input_tensor=input_img, targets=[ClassifierOutputTarget(pred_class.item())])[0]
 
-# # 反归一化原图
-# mean = torch.tensor([0.5071, 0.4867, 0.4408]).view(3, 1, 1)
-# std = torch.tensor([0.2675, 0.2565, 0.2761]).view(3, 1, 1)
-# img_denorm = img_tensor.clone().detach().cpu() * std + mean
-# img_np = img_denorm.permute(1, 2, 0).numpy()
-# img_np = np.clip(img_np, 0, 1)
+# 反归一化原图
+mean = torch.tensor([0.5071, 0.4867, 0.4408]).view(3, 1, 1)
+std = torch.tensor([0.2675, 0.2565, 0.2761]).view(3, 1, 1)
+img_denorm = img_tensor.clone().detach().cpu() * std + mean
+img_np = img_denorm.permute(1, 2, 0).numpy()
+img_np = np.clip(img_np, 0, 1)
 
-# plt.figure(figsize=(12, 6))
+plt.figure(figsize=(12, 6))
 
-# cifar10_classes = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
-# # 原图
-# plt.subplot(1, 2, 1)
-# plt.imshow(img_np)
-# plt.title("Original Image")
-# plt.axis('off')
+cifar10_classes = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+# 原图
+plt.subplot(1, 2, 1)
+plt.imshow(img_np)
+plt.title("Original Image")
+plt.axis('off')
 
-# # GradCam++ 热图叠加
-# # plt.subplot(1, 2, 2)
-# # plt.imshow(img_np)
-# # plt.imshow(grayscale_cam, cmap='turbo', alpha=0.4)
-# # plt.title(f"GradCam++ Heatmap (Predicted class: {cifar10_classes[pred_class.item()]})")
-# # plt.axis('off')
-
-# # GradCam++ 热图叠加（使用官方 show_cam_on_image 方法）
-# cam_image = show_cam_on_image(img_np, grayscale_cam, use_rgb=True, image_weight=0.6)
+# GradCam++ 热图叠加
 # plt.subplot(1, 2, 2)
-# plt.imshow(cam_image)
+# plt.imshow(img_np)
+# plt.imshow(grayscale_cam, cmap='turbo', alpha=0.4)
 # plt.title(f"GradCam++ Heatmap (Predicted class: {cifar10_classes[pred_class.item()]})")
 # plt.axis('off')
 
-# plt.tight_layout()
-# plt.savefig("/home/shensicheng/log/SpikingTransformerBenchmark/vis/Spikformer/test1.png", dpi=300, bbox_inches='tight')
-# plt.show()
+# GradCam++ 热图叠加（使用官方 show_cam_on_image 方法）
+cam_image = show_cam_on_image(img_np, grayscale_cam, use_rgb=True, image_weight=0.6)
+plt.subplot(1, 2, 2)
+plt.imshow(cam_image)
+plt.title(f"GradCam++ Heatmap (Predicted class: {cifar10_classes[pred_class.item()]})")
+plt.axis('off')
+
+plt.tight_layout()
+plt.savefig("/home/shensicheng/log/SpikingTransformerBenchmark/vis/Spikformer/test1.png", dpi=300, bbox_inches='tight')
+plt.show()
