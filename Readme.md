@@ -31,7 +31,7 @@ Built on top of **[BrainCog](https://github.com/BrainCog-X/Brain-Cog)**, this re
 ## 🔑 Key Features of STEP
 
 <p align="center">
-  <img src="/imgs/bench.jpg" alt="mp" style="width: 60%; max-width: 600px; min-width: 200px;" />
+  <img src="/imgs/bench.png" alt="mp" style="width: 75%; max-width: 600px; min-width: 200px;" />
 </p>
 
 - **Unified Benchmark for Spiking Transformers**  
