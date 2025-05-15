@@ -9,6 +9,7 @@ from pytorch_grad_cam.utils.image import show_cam_on_image
 import torch
 import numpy as np
 
+
 def reshape_transform(tensor):
     """将形状为 (N, tokens, channels) 的 tensor 转换为 (N, channels, H, W)，
     如果存在分类 token，则去除第一个 token。"""
@@ -18,18 +19,22 @@ def reshape_transform(tensor):
         if (n - 1) > 0 and ((n - 1) ** 0.5) % 1 == 0:
             tensor = tensor[:, 1:, :]
             n = n - 1
-        size = int(n ** 0.5)
+        size = int(n**0.5)
         return tensor.transpose(1, 2).reshape(b, c, size, size)
     return tensor
+
 
 from ..models.static.spikformer_cifar import *
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-ckpt_path = '/home/shensicheng/log/SpikingTransformerBenchmark/cls/Spikformer/spikformer_cifar--cifar10--LIFNode--thres_1.0--tau_2.0--seed_42--epoch_400--20250325-103608/model_best.pth.tar'
+ckpt_path = "/home/shensicheng/log/SpikingTransformerBenchmark/cls/Spikformer/spikformer_cifar--cifar10--LIFNode--thres_1.0--tau_2.0--seed_42--epoch_400--20250325-103608/model_best.pth.tar"
 model = spikformer_cifar(pretrained=False)
-model.load_state_dict(torch.load(ckpt_path, map_location="cpu", weights_only=False)["state_dict"], strict=False)
+model.load_state_dict(
+    torch.load(ckpt_path, map_location="cpu", weights_only=False)["state_dict"],
+    strict=False,
+)
 model = model.to(device)
 model.eval()
 
@@ -43,11 +48,13 @@ transform = create_transform(
     mean=[0.5071, 0.4867, 0.4408],
     std=[0.2675, 0.2565, 0.2761],
     crop_pct=1.0,
-    interpolation='bicubic',
-    color_jitter=0.,
-    auto_augment='rand-m9-n1-mstd0.4-inc1'
+    interpolation="bicubic",
+    color_jitter=0.0,
+    auto_augment="rand-m9-n1-mstd0.4-inc1",
 )
-dataset = datasets.CIFAR10(root='/data/datasets/CIFAR10/', train=False, download=True, transform=transform)
+dataset = datasets.CIFAR10(
+    root="/data/datasets/CIFAR10/", train=False, download=True, transform=transform
+)
 img_tensor, label = dataset[1]
 input_img = img_tensor.unsqueeze(0).to(device)
 
@@ -55,7 +62,9 @@ output = model(input_img)
 pred_class = output.argmax(dim=1)
 
 # 使用 pytorch-grad-cam 库的 GradCAM++ 计算热图
-cam_algorithm = GradCAMPlusPlus(model=model, target_layers=[target_layer], reshape_transform=reshape_transform)
+cam_algorithm = GradCAMPlusPlus(
+    model=model, target_layers=[target_layer], reshape_transform=reshape_transform
+)
 grayscale_cam = cam_algorithm(input_tensor=input_img, targets=[ClassifierOutputTarget(pred_class.item())])[0]
 
 # 反归一化原图

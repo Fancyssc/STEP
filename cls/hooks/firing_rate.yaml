@@ -1,0 +1,4 @@
+model:
+  name: qkformer
+
+ckpt_path: /mnt/home/fenglinghao/log/SpikingTransformerBenchmark/cls/QKFormer/qkformer_imagenet--imagenet--LIFNode--thres_1.0--tau_2.0--seed_42--epoch_200--20250419-145730/model_best.pth.tar
