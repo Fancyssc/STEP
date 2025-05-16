@@ -4,7 +4,7 @@ _base_ = [
     '../_base_/schedules/schedule_1x.py', '../_base_/default_runtime.py'
 ]
 
-# pretrained = "/lxh/spike-driven-transformer/mmdet3/work_dirs/t1_adamw_0.440_15m.pth"  #15M_coco_t1
+pretrained = "/home/shensicheng/code/SpikingTransformerBenchmark/det/configs/sdt_mask_rcnn/55M_kd_T4.pth"  #15M_coco_t1
 
 # augmentation strategy originates from DETR / Sparse RCNN
 train_pipeline = [
@@ -53,23 +53,23 @@ model = dict(
     type='MaskRCNN',
     backbone=dict(
         _delete_=True,
-        type='Spiking_vit_MetaFormer',
-        # embed_dim=[128, 256, 512, 640],  #55M
-        embed_dim=[64, 128, 256, 360],  #15M
+        type='Spiking_vit_MetaFormer_t1',
+        embed_dim=[128, 256, 512, 640],  #55M
+        # embed_dim=[64, 128, 256, 360],  #15M
         num_heads=8,
         mlp_ratios=4,
         in_channels=3,
         qkv_bias=False,
         depths=8,
         sr_ratios=1,
-        T=4,
+        T=1,
         # init_cfg=dict(type='Pretrained', checkpoint=pretrained)
         init_cfg=None,
     ),
     neck=dict(
         type='SpikeFPN',
-        # in_channels=[128, 256, 512, 640],  #55M
-        in_channels=[64, 128, 256, 360],  #15M
+        in_channels=[128, 256, 512, 640],  #55M
+        # in_channels=[64, 128, 256, 360],  #15M
         out_channels=256,
         num_outs=5),
     rpn_head=dict(
@@ -131,7 +131,7 @@ model = dict(
             loss_mask=dict(
                 type='CrossEntropyLoss', use_mask=True, loss_weight=1.0))),)
 
-max_epochs = 5  #训练最大轮次是由新设置的train_config决定的，但学习率策略是resume的模型(param_scheduler)决定的
+max_epochs = 10  #训练最大轮次是由新设置的train_config决定的，但学习率策略是resume的模型(param_scheduler)决定的
 max_iter = max_epochs * 23454
 train_cfg = dict(max_epochs=max_epochs)
 
