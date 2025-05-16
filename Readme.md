@@ -68,7 +68,10 @@ Spiking-Transformer-Benchmark/
 │   ├── mmseg      
 │   └── ...
 ├── det/               # Object detection submodule 
-│   └── README.md      
+│   ├── README.md      
+│   ├── configs/       
+│   ├── mmdet      
+│   └── ...
 └── README.md          
 ```
 
