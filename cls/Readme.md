@@ -228,6 +228,91 @@ to be updated
     To write config files and place them under ```configs/[your_model]``` directory, the format should **strictly** flollow the format of the existing config files. We highly recommend this method which keeps structures of all ```.yml``` files clear and consistent. The reason for separating model configuration and training hyperparameters is to facilitate debugging and make the tuning process easier.
     
     Eventually, to import the registered model in ```train.py```.
+```
+
+# dataset
+data_dir: '/data/datasets/CIFAR10'
+dataset: torch/cifar10
+num_classes: 10
+img_size: 32
+
+# data augmentation
+mean:
+    - 0.4914
+    - 0.4822
+    - 0.4465
+std:
+    - 0.2470
+    - 0.2435
+    - 0.2616
+crop_pct: 1.0
+scale:
+    - 1.0
+    - 1.0
+ratio: [1.0,1.0]
+color_jitter: 0.
+interpolation: bicubic
+train_interpolation: bicubic
+aa: rand-m9-n1-mstd0.4-inc1
+epochs: 400   #epochs
+mixup: 0.5
+mixup_off_epoch: 200
+mixup_prob: 1.0
+mixup_mode: batch
+mixup_switch_prob: 0.5
+cutmix: 0.0
+reprob: 0.25
+remode: const
+
+# model structure
+model: "spikformer_cifar"
+step: 4
+patch_size: 4
+in_channels: 3
+embed_dim: 384
+num_heads: 12
+mlp_ratio: 4
+attn_scale: 0.125
+mlp_drop: 0.0
+attn_drop: 0.0
+depths: 4
+
+# transformer layer
+embed_layer: 'SPS'
+attn_layer: 'SSA'
+
+
+# node
+tau: 2.0
+threshold: 1.0
+act_function: SigmoidGrad
+node_type: LIFNode
+alpha: 4.0
+
+# train hyperparam
+amp: True
+batch_size: 128
+val_batch_size: 128
+lr: 5e-4
+min_lr: 1e-5
+sched: cosine
+weight_decay: 6e-2
+cooldown_epochs: 10
+warmup_epochs: 20
+warmup_lr: 0.00001
+opt: adamw
+smoothing: 0.1
+workers: 16
+seed: 42
+log_interval: 200
+
+# log dir
+output: "./output"'"
+
+# device
+device: 0
+
+```
 
 
 4. **Run the training script**
