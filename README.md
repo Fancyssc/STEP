@@ -81,8 +81,15 @@ To get started, clone the repository and install the required dependencies:
 
 ```bash
 git clone https://github.com/Fancyssc/STEP.git
-
 ```
+
+### BrainCog Installation
+For the BrainCog framework, we recommend installing it via GitHub. You can use the following command in your terminal to install it from GitHub:
+```angular2html
+pip install git+https://github.com/braincog-X/Brain-Cog.git
+```
+
+
 For the **seg** and **cls** tasks, different environment requirements apply. Please refer to the corresponding README files in each subdirectory for details.
 
 > **Prerequisites**: Python 3.8 or above, PyTorch, and BrainCog.
@@ -98,3 +105,15 @@ For the **seg** and **cls** tasks, different environment requirements apply. Ple
 
 We look forward to working with the community to make STEP an ever-stronger platform for neuromorphic research.
 
+## 📝Citation
+```angular2html
+@misc{shen2025stepunifiedspikingtransformer,
+      title={STEP: A Unified Spiking Transformer Evaluation Platform for Fair and Reproducible Benchmarking}, 
+      author={Sicheng Shen and Dongcheng Zhao and Linghao Feng and Zeyang Yue and Jindong Li and Tenglong Li and Guobin Shen and Yi Zeng},
+      year={2025},
+      eprint={2505.11151},
+      archivePrefix={arXiv},
+      primaryClass={cs.NE},
+      url={https://arxiv.org/abs/2505.11151}, 
+}
+```
