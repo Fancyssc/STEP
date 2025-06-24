@@ -215,6 +215,8 @@ to be updated
 ```
 
 2. **Install the required packages.**
+
+BrainCog is a **prerequisite for all tasks**. For installation instructions, please refer to [Here](../README.md#braincog-installation).
 ```angular2html
     conda create -n [your_env_name] python=3.8 -y
     conda activate [your_env_name]

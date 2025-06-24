@@ -32,6 +32,9 @@ framework to handle segmentation tasks, while leveraging BrainCog as the backbon
 ```
 
 2. **Environment**
+
+BrainCog is a **prerequisite for all tasks**. For installation instructions, please refer to [Here](../README.md#braincog-installation).
+
 The mmseg framework has strict environment requirements. We recommend aligning your package versions with the ones listed
 below to ensure proper functionality.
 ```angular2html

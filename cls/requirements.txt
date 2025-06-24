@@ -1,7 +1,6 @@
 # requirements.txt for SpikingTransformerBenchmark
 absl-py==2.1.0
 audioread==3.0.1
-braincog==0.2.7.19
 cachetools==5.5.0
 cffi==1.17.1
 charset-normalizer==3.4.0

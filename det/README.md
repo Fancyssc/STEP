@@ -34,10 +34,14 @@ The usage of mmdet is very similar to
 ```
 
 2. **Environment**
+
+BrainCog is a **prerequisite for all tasks**. For installation instructions, please refer to [Here](../README.md#braincog-installation).
+
 The mmseg framework has strict environment requirements. We recommend aligning your package versions with the ones listed
 below to ensure proper functionality.
 
-3. If you
+It is important to note that due to compatibility issues with mmseg, servers running CUDA 12.x may still encounter errors 
+even if all package versions are aligned as recommended. **Therefore, we strongly recommend using a CUDA 11.x environment for optimal stability**.
 ```angular2html
     python == 3.10.x
     torch == 2.0.1+cu118
@@ -46,8 +50,7 @@ below to ensure proper functionality.
     mmdet == 3.1.0
     numpy == 1.26.4
 ```
-It is important to note that due to compatibility issues with mmseg, servers running CUDA 12.x may still encounter errors 
-even if all package versions are aligned as recommended. **Therefore, we strongly recommend using a CUDA 11.x environment for optimal stability**.
+
 
 3. **Usage**
 - **model construction**: Create your model and place it under ```mmdet/models/[model_type]/```.
