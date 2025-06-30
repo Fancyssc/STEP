@@ -24,9 +24,9 @@ Built on top of **[BrainCog](https://github.com/BrainCog-X/Brain-Cog)**, this re
 
 | Task | Documentation |
 |------|---------------|
-| Classification | [cls/Readme.md](cls/Readme.md) |
-| Segmentation   | [seg/Readme.md](seg/Readme.md) |
-| Detection      | [det/Readme.md](det/Readme.md) |
+| Classification | [cls/Readme.md](cls/README.md) |
+| Segmentation   | [seg/Readme.md](seg/README.md) |
+| Detection      | [det/Readme.md](det/README.md) |
 
 ## 🔑 Key Features of STEP
 
