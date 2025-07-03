@@ -4,6 +4,9 @@ Classification is one of the most fundamental tasks in computer vision. Our fram
 Supported datasets can be refered to **[here](#supported-datasets)**
 
 Checkpoints can be downloaded from **[official repo on huggingface](https://huggingface.co/Fancysean/STEP)**
+
+Main experiments can be viewed at **[here](Results.md)**
+
 ### Model-zoo
 These results reproduce the original-paper scores and are updated periodically.
 - Default configs: ```4-384 (4 steps)``` for CIFAR10/100, ```8-768 (4 steps)``` for ImageNet-1K. 
@@ -39,7 +42,7 @@ These results reproduce the original-paper scores and are updated periodically.
 These results reproduce the original-paper scores and are updated periodically.
 - Default configs: ```4-512 (4 steps)``` for both datasets. 
 - mAcc(%) are record in the chart
-- 
+
 |           Model           |                  Pub. Info.                   |  Modelnet40  | Modelnet 10 | ScanObjectNN | Status |
 |:-------------------------:|:---------------------------------------------:|:------------:|:-----------:|:------------:|:------:|
 | Spiking Point Transformer | [AAAI 2025](https://arxiv.org/abs/2502.15811) | 93.54 |    89.39    |     74.53     |  ✅   |
