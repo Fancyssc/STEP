@@ -3,6 +3,8 @@
 Segmentation is a crucial component in image processing. In our implementation, we use the widely adopted [MMSegmentation](https://github.com/open-mmlab/mmsegmentation) 
 framework to handle segmentation tasks, while leveraging BrainCog as the backbone framework for building Spiking Neural Networks (SNNs).
 
+Checkpoints can be downloaded from **[official repo on huggingface](https://huggingface.co/Fancysean/STEP)**
+
 ### Guidelines
 #### Code Environment
 1. **The path configuration for your code repository should be as follows.**

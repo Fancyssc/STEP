@@ -3,7 +3,9 @@
 Detection is a crucial component in image processing. In our implementation, we use the widely adopted [MMDetection](https://github.com/open-mmlab/mmdetection) 
 framework to handle detection tasks, while leveraging BrainCog as the backbone framework for building Spiking Neural Networks (SNNs).
 
-The usage of mmdet is very similar to 
+The usage of mmdet is very similar to mmseg
+
+Checkpoints can be downloaded from **[official repo on huggingface](https://huggingface.co/Fancysean/STEP)**
 
 ### Guidelines
 #### Code Environment
