@@ -47,9 +47,9 @@ python train.py --config configs/spikformer/cifar10.yml
 
 ## 📂 DeepDive Guides
 For specific tasks, completed models and supported datasets, please refer to the corresponding submodule guides:
-- [Classification(Cls)](./cls/README.md)  
-- [Segmentation(Seg)](./seg/README.md)  
-- [Detection(Det)](./det/README.md)
+- [Classification(cls)](./cls/README.md)  
+- [Segmentation(seg)](./seg/README.md)  
+- [Detection(det)](./det/README.md)
 ```plaintext
 Spiking-Transformer-Benchmark/
 ├── cls/               # Classification submodule
@@ -72,11 +72,35 @@ Spiking-Transformer-Benchmark/
 
 One-stop benchmark for Spiking-Transformer research—classification, segmentation, and detection share the same training & evaluation pipeline.
 - **Plug-and-play modules** (neurons, encodings, attention, surrogate gradients, heads) let you prototype new ideas without touching the core loop.
-- **Ready-made loaders** cover ImageNet, CIFAR, DVS-CIFAR10, N-Caltech101 … adding a new dataset is ~50 lines.
+- **Ready-made loaders** cover ImageNet, CIFAR, DVS-CIFAR10, N-Caltech101 … 
 - **Task adapters integrate with MMSeg and MMDet**, so dense prediction experiments need only a config tweak.
 - **Backend-agnostic code** runs on SpikingJelly, BrainCog, or BrainPy, and every config is version-locked for full reproducibility. neuromorphic vision systems.
 
+### Supported Datasets
+#### cls 
+**Static**(e.g. CIFAR/ImageNet...)**/Neuromorphic**(e.g. CIFAR10-DVS)/**3D Point Cloud**(e.g. ModelNet40) classification datasets are supported.
+
+See [cls/README.md](./cls/README.md#supported-datasets) for details.
+
+#### seg/det
+Frequently used datasets for both tasks which are assembled by MMSeg and MMDet are supported. 
+
+See [MMSegmentation](https://github.com/open-mmlab/mmsegmentation) and [MMDetection](https://github.com/open-mmlab/mmdetection) for details.
+
+####
+
+### Integrated Neurons
+|                Neuron Node                 |                              abbreviation                               ||              Neuron Node              |                                                        abbreviation                                                         |
+|:------------------------------------------:|:-----------------------------------------------------------------------:|:--:|:-------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------:|
+|         Integrate-and-Fire Neuron          |                                   IF                                    ||    Leaky Integrate-and-Fire Neuron    |                                                             LIF                                                             |
+| Parametric Leaky Integrate-and-Fire Neuron |                                  PLIF                                   || Exponential Integrate-and-Fire Neuron |                            [EIF](https://journals.physiology.org/doi/full/10.1152/jn.00686.2005)                            |
+|             Integer LIF Neuron             | [I-LIF](https://link.springer.com/chapter/10.1007/978-3-031-73411-3_15) ||    Normarlized Interger LIF Neuron    |                              [NI-LIF](https://ojs.aaai.org/index.php/AAAI/article/view/32126)                               |
+|         Hybrid Dynamics LIF Neuron         |                               [HD-LIF](https://ojs.aaai.org/index.php/AAAI/article/view/35459)                                ||           Gated LIF Neuron            |                                          [GLIF](https://arxiv.org/abs/2210.13768)                                           |
+|             k-based LIF Neuron             |                [KLIF]( https://arxiv.org/abs/2302.09238)                ||          Complementary LIF Neuron            |                                          [CLIF](https://arxiv.org/abs/2402.04663 )                                          |
+|             Parallel Spiking Neuron        |                 [PSN](https://arxiv.org/abs/2304.12760)                 ||                 |                                                                                                                             |
 ## Resources
+
+
 ### Tutorial
 
 ### Checkpoints
