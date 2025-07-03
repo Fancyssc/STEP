@@ -15,6 +15,7 @@ class BaseNode_Torch(BaseNode):
     """
     Base Node for Layer by Layer forward propagation
     New OP added to adapt specific dim needed by Spiking Transformers
+
     :param threshold: The threshold that a neuron needs to reach in order to fire an action potential.
     :param step: The number of time steps that the neuron will be simulated for.
     """
@@ -89,14 +90,14 @@ class IFNode(BaseNode_Torch):
     """
     Integrate and Fire Neuron(IFNode)
     Re-implemented with BaseNode_Torch
+
+    :param threshold: The threshold that a neuron needs to reach in order to fire an action potential.
     """
 
     def __init__(self, threshold=.5, act_fun=AtanGrad, *args, **kwargs):
         """
-        :param threshold:
-        :param act_fun:
-        :param args:
-        :param kwargs:
+        :param threshold: The threshold that a neuron needs to reach in order to fire an action potential.
+        :param act_fun: Surrogate Activation Function
         """
         super().__init__(threshold, *args, **kwargs)
         if isinstance(act_fun, str):

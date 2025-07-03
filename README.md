@@ -90,14 +90,16 @@ See [MMSegmentation](https://github.com/open-mmlab/mmsegmentation) and [MMDetect
 ####
 
 ### Integrated Neurons
-|                Neuron Node                 |                              abbreviation                               ||              Neuron Node              |                                                        abbreviation                                                         |
-|:------------------------------------------:|:-----------------------------------------------------------------------:|:--:|:-------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------:|
-|         Integrate-and-Fire Neuron          |                                   IF                                    ||    Leaky Integrate-and-Fire Neuron    |                                                             LIF                                                             |
-| Parametric Leaky Integrate-and-Fire Neuron |                                  PLIF                                   || Exponential Integrate-and-Fire Neuron |                            [EIF](https://journals.physiology.org/doi/full/10.1152/jn.00686.2005)                            |
-|             Integer LIF Neuron             | [I-LIF](https://link.springer.com/chapter/10.1007/978-3-031-73411-3_15) ||    Normarlized Interger LIF Neuron    |                              [NI-LIF](https://ojs.aaai.org/index.php/AAAI/article/view/32126)                               |
-|         Hybrid Dynamics LIF Neuron         |                               [HD-LIF](https://ojs.aaai.org/index.php/AAAI/article/view/35459)                                ||           Gated LIF Neuron            |                                          [GLIF](https://arxiv.org/abs/2210.13768)                                           |
-|             k-based LIF Neuron             |                [KLIF]( https://arxiv.org/abs/2302.09238)                ||          Complementary LIF Neuron            |                                          [CLIF](https://arxiv.org/abs/2402.04663 )                                          |
-|             Parallel Spiking Neuron        |                 [PSN](https://arxiv.org/abs/2304.12760)                 ||                 |                                                                                                                             |
+|                Neuron Node                 |                              abbreviation                               ||              Neuron Node              |                             abbreviation                              |
+|:------------------------------------------:|:-----------------------------------------------------------------------:|:--:|:-------------------------------------:|:---------------------------------------------------------------------:|
+|         Integrate-and-Fire Neuron          |                                   IF                                    ||    Leaky Integrate-and-Fire Neuron    |                                  LIF                                  |
+| Parametric Leaky Integrate-and-Fire Neuron |                                  PLIF                                   || Exponential Integrate-and-Fire Neuron | [EIF](https://journals.physiology.org/doi/full/10.1152/jn.00686.2005) |
+|             Integer LIF Neuron             | [I-LIF](https://link.springer.com/chapter/10.1007/978-3-031-73411-3_15) ||    Normarlized Interger LIF Neuron    |   [NI-LIF](https://ojs.aaai.org/index.php/AAAI/article/view/32126)    |
+|         Hybrid Dynamics LIF Neuron         |    [HD-LIF](https://ojs.aaai.org/index.php/AAAI/article/view/35459)     ||           Gated LIF Neuron            |               [GLIF](https://arxiv.org/abs/2210.13768)                |
+|             k-based LIF Neuron             |                [KLIF]( https://arxiv.org/abs/2302.09238)                ||       Complementary LIF Neuron        |               [CLIF](https://arxiv.org/abs/2402.04663 )               |
+|             Parallel Spiking Neuron        |                 [PSN](https://arxiv.org/abs/2304.12760)                 ||                Hodgkin-Huxley Neuron                        |                              [HHNode](https://pmc.ncbi.nlm.nih.gov/articles/PMC1392413/)                               |
+|             Izhikevich Neuron        |               [IzhNode](https://ieeexplore.ieee.org/abstract/document/1257420)               ||                |                                                                       |
+
 ## Resources
 
 
