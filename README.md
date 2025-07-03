@@ -89,6 +89,14 @@ See [MMSegmentation](https://github.com/open-mmlab/mmsegmentation) and [MMDetect
 
 ####
 
+## Resources
+
+### Tutorial
+The brief tutorial of STEP can be found [here](https://step.readthedocs.io/en/latest/).
+
+### Checkpoints
+The main experimental results, including the corresponding log files, configuration files, and checkpoints, can be downloaded [here](https://huggingface.co/Fancysean/STEP).
+
 ### Integrated Neurons
 |                Neuron Node                 |                              abbreviation                               ||              Neuron Node              |                             abbreviation                              |
 |:------------------------------------------:|:-----------------------------------------------------------------------:|:--:|:-------------------------------------:|:---------------------------------------------------------------------:|
@@ -100,13 +108,9 @@ See [MMSegmentation](https://github.com/open-mmlab/mmsegmentation) and [MMDetect
 |             Parallel Spiking Neuron        |                 [PSN](https://arxiv.org/abs/2304.12760)                 ||                Hodgkin-Huxley Neuron                        |                              [HHNode](https://pmc.ncbi.nlm.nih.gov/articles/PMC1392413/)                               |
 |             Izhikevich Neuron        |               [IzhNode](https://ieeexplore.ieee.org/abstract/document/1257420)               ||                |                                                                       |
 
-## Resources
+### Supported Encoding
+When working with static datasets, SNNs typically require encoding of static images. Our framework supports various encoding methods, including **direct, rate, TTFS, and phase** encoding.
 
-
-### Tutorial
-
-### Checkpoints
-The main experimental results, including the corresponding log files, configuration files, and checkpoints, can be downloaded [here](https://huggingface.co/Fancysean/STEP).
 
 
 ## 📝Citation
