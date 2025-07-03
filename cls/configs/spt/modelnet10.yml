@@ -1,0 +1,37 @@
+# dataset
+dataset: ModelNet10
+data_dir: "/data1/ssc/modelnet40_normal_resampled"
+num_class: 10
+normal: True
+
+#model structure
+model: "spt"
+step: 4
+nneighbor: 16
+nblocks: 4
+blocks: [1, 1, 1, 1, 1]
+transformer_dim: 512
+spike_mode: "lif"       # None means ann. [option](if, lif, plif, elif)
+use_encoder: true       # true/false means whether to use Q-SDE
+num_samples: 512        # number of points each timrstep
+num_point: 1024
+
+# node
+tau: 2.0
+threshold: 0.2
+act_function: SigmoidGrad
+node_type: LIFNode
+alpha: 4.0
+
+# train hyperparam
+batch_size: 2
+epoch: 200
+learning_rate: 0.001
+weight_decay: 0.0001
+optimizer: AdamW
+
+# device
+device: [3,4] # better for enumerator
+
+# log dir
+output: "/home/shensicheng/log/SPT/modelnet10"

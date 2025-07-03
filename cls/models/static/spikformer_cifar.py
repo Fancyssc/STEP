@@ -39,25 +39,30 @@ class SPS(BaseModule):
 
         self.proj_conv = nn.Conv2d(in_channels, embed_dims // 8, kernel_size=3, stride=1, padding=1, bias=False)
         self.proj_bn = nn.BatchNorm2d(embed_dims // 8)
-        self.proj_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
+        self.proj_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                             layer_by_layer=layer_by_layer, mem_detach=False, input_dims=embed_dims // 8)
 
         self.proj_conv1 = nn.Conv2d(embed_dims // 8, embed_dims // 4, kernel_size=3, stride=1, padding=1, bias=False)
         self.proj_bn1 = nn.BatchNorm2d(embed_dims // 4)
-        self.proj_lif1 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+        self.proj_lif1 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                              layer_by_layer=layer_by_layer, mem_detach=False, input_dims=embed_dims // 4)
 
         self.proj_conv2 = nn.Conv2d(embed_dims // 4, embed_dims // 2, kernel_size=3, stride=1, padding=1, bias=False)
         self.proj_bn2 = nn.BatchNorm2d(embed_dims // 2)
-        self.proj_lif2 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+        self.proj_lif2 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                              layer_by_layer=layer_by_layer, mem_detach=False, input_dims=embed_dims // 2)
         self.maxpool2 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
 
         self.proj_conv3 = nn.Conv2d(embed_dims // 2, embed_dims, kernel_size=3, stride=1, padding=1, bias=False)
         self.proj_bn3 = nn.BatchNorm2d(embed_dims)
-        self.proj_lif3 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+        self.proj_lif3 = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                              layer_by_layer=layer_by_layer, mem_detach=False, input_dims=embed_dims)
         self.maxpool3 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
 
         self.rpe_conv = nn.Conv2d(embed_dims, embed_dims, kernel_size=3, stride=1, padding=1, bias=False)
         self.rpe_bn = nn.BatchNorm2d(embed_dims)
-        self.rpe_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+        self.rpe_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                            layer_by_layer=layer_by_layer, mem_detach=False,input_dims = embed_dims)
 
     def forward(self, x):
         self.reset()
@@ -104,21 +109,26 @@ class SSA(BaseModule):
         self.T = step
         self.q_linear = nn.Linear(embed_dim, embed_dim)
         self.q_bn = nn.BatchNorm1d(embed_dim)
-        self.q_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+        self.q_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                          layer_by_layer=layer_by_layer, mem_detach=False, input_dims = embed_dim)
 
         self.k_linear = nn.Linear(embed_dim,embed_dim)
         self.k_bn = nn.BatchNorm1d(embed_dim)
-        self.k_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+        self.k_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                          layer_by_layer=layer_by_layer, mem_detach=False, input_dims = embed_dim)
 
         self.v_linear = nn.Linear(embed_dim, embed_dim)
         self.v_bn = nn.BatchNorm1d(embed_dim)
-        self.v_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+        self.v_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                          layer_by_layer=layer_by_layer, mem_detach=False, input_dims = embed_dim)
 
-        self.attn_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=0.5, layer_by_layer=True, mem_detach=False) #special v_thres
+        self.attn_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=0.5,
+                             layer_by_layer=True, mem_detach=False, input_dims = embed_dim) #special v_thres
 
         self.proj_linear = nn.Linear(embed_dim, embed_dim)
         self.proj_bn = nn.BatchNorm1d(embed_dim)
-        self.proj_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,  layer_by_layer=layer_by_layer, mem_detach=False)
+        self.proj_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                             layer_by_layer=layer_by_layer, mem_detach=False, input_dims = embed_dim)
 
     def forward(self, x):
         self.reset()
@@ -149,7 +159,8 @@ class SSA(BaseModule):
         return x # TB N C
 
 class MLP(BaseModule):
-    def __init__(self, in_features, step=4, encode_type='direct', mlp_ratio = 4.0, out_features=None,mlp_drop=0.,node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.,layer_by_layer=True):
+    def __init__(self, in_features, step=4, encode_type='direct', mlp_ratio = 4.0, out_features=None,mlp_drop=0.,
+                 node=LIFNode,tau=2.0,threshold=1.0,act_func=SigmoidGrad, alpha=4.,layer_by_layer=True):
         super().__init__(encode_type=encode_type,step=step,layer_by_layer=layer_by_layer)
 
         self.out_features = out_features or in_features
@@ -160,11 +171,13 @@ class MLP(BaseModule):
 
         self.fc1_linear = nn.Linear(in_features, self.hidden_features)
         self.fc1_bn = nn.BatchNorm1d(self.hidden_features)
-        self.fc1_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
+        self.fc1_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                            layer_by_layer=layer_by_layer, mem_detach=False, input_dims = self.hidden_features)
 
         self.fc2_linear = nn.Linear(self.hidden_features, out_features)
         self.fc2_bn = nn.BatchNorm1d(self.out_features)
-        self.fc2_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold, layer_by_layer=layer_by_layer, mem_detach=False)
+        self.fc2_lif = node(step=step, tau=tau, act_func=act_func(alpha=alpha), threshold=threshold,
+                            layer_by_layer=layer_by_layer, mem_detach=False, input_dims = self.out_features)
     def forward(self, x):
         self.reset()
 

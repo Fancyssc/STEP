@@ -449,7 +449,7 @@ def main():
     if node_type is None:
         raise ValueError(f"Node type {args.node} not found.")
     if act_function is None:
-        raise ValueError(f"Activation function {args.act_func} not found.")
+        raise ValueError(f"Activation function {args.act_function} not found.")
 
     # model params
     all_args = vars(args)
@@ -596,7 +596,6 @@ def main():
         _logger.info('Scheduled epochs: {}'.format(num_epochs))
 
         dataset_to_load = seq_dataset_map.get(args.dataset, args.dataset)
-
         dataset_train = create_dataset(
             dataset_to_load,
             root=args.data_dir, split=args.train_split, is_training=True,

@@ -257,6 +257,8 @@ class SDTV1(BaseModule):
         self.depths = depths
         self.head_lif = node(step=step,tau=2.0, threshold=threshold, act_func=act_func(alpha=alpha),
                              layer_by_layer=layer_by_layer, mem_detach=False)
+        self.alpha=alpha
+        self.act_func = act_func
 
         if embed_layer in globals():
             patch_embed = globals()[embed_layer](img_h=img_size,
@@ -306,13 +308,15 @@ class SDTV1(BaseModule):
 
     def forward(self, x):
         self.reset()
+
         if len(x.shape) == 4:
             x = self.encoder(x) # TB C H W
             # sequence datasets
         else:
             x = (x.unsqueeze(0)).repeat(self.step, 1, 1, 1).flatten(0, 1)
-        x = self.forward_features(x)
-        x = self.head_lif(x)
+        x = self.forward_features(x) #T B C
+        T, B, C = x.shape
+        x = self.head_lif(x.flatten(0, 1)).reshape(T, B, C)
         x = self.head(x.mean(0))
         return x
 

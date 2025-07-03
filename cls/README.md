@@ -38,7 +38,7 @@ Other hyper-param setting are following the original paper.
 |:-----------------:|:----------:|:-------:|:-------:|:-----:|:-------------:|:----------------------------------------------------:|
 |    Spikformer     |    128     | CIFAR10 | 4 |  400  |     95.12     |                          -                           |
 |                   |            |         ||       |
-|        SDT        |    128     | CIFAR10 | 4 |  400  |     95.77     |                          -                           |
+|        SDT        |    128     | CIFAR10 | 4 |  400  |     95.79     |                          -                           |
 |                   |            |         ||       |
 |     QKFormer      |    128     | CIFAR10 | 4 |  400  |     96.24     |                          -                           |
 |                   |            |         ||       |
@@ -139,7 +139,22 @@ Other hyper-param setting are following the original paper.
 |   Spikformer + SEMM     |    128     | CIFAR10 |  4   |  400  |     83.04     |   rate   |
 |    Spikformer + SEMM     |    128     | CIFAR10 |  4   |  400  |     83.37     |   ttfs   |
 
-#### Meta-Transformer Test
+#### Surrogate Grad Test
+|   Model    | Batch-Size | Dataset  | Step | Epoch | Result(Acc@1) | Act_func | Alpha |
+|:----------:|:----------:|:--------:|:----:|:-----:|:-------------:|:--------:|:-----:|
+| Spikformer |    128     | CIFAR10 |  4   |  400  |     95.12     | Sigmoid  |   4   |
+| Spikformer |    128     | CIFAR10 |  4   |  400  |     95.09     | Sigmoid  |   2   |
+| Spikformer |    128     | CIFAR10 |  4   |  400  |     95.09     |  QGate   |   4   |
+| Spikformer |    128     | CIFAR10 |  4   |  400  |     95.09     |  QGate   |   2   |
+|            |            ||      |       |               |          |       |
+|    SDT     |    128     | CIFAR10 |  4   |  400  |     95.79     | Sigmiod  |   4   |
+|    SDT     |    128     | CIFAR10 |  4   |  400  |     95.81     | Sigmoid  |   2   |
+|    SDT     |    128     | CIFAR10 |  4   |  400  |     95.92     |  QGate   |   4   |
+|    SDT     |    128     | CIFAR10 |  4   |  400  |     95.81     |  QGate   |   2   |
+|            |            ||      |       |               |          |       |
+
+
+#### Transformer Component Test
 **ssa/sdsa**: Spiking Attention from originial Spikformer/SDT
 
 **sdsa_3**: Spiking Attention from Meta-Spikeformer(SDT_2) which substitute linear and regular conv with `RepConv`.

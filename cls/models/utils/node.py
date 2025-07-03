@@ -1,36 +1,14 @@
-from braincog.base.node.node import *
-from braincog.base.connection.layer import *
-from braincog.base.strategy.surrogate import *
+# from braincog.base.connection.layer import *
+# from braincog.base.strategy.surrogate import *
+import torch
+from braincog.model_zoo.base_module import BaseModule
+from braincog.base.node.node import BaseNode, rearrange
+from .surrogate import *
 
 # for debugging
 from spikingjelly.clock_driven.neuron import LIFNode as sj_LIFNode
-from spikingjelly.clock_driven import neuron_kernel
 from spikingjelly.clock_driven import surrogate
 
-
-
-class Sigmoid_Grad(SurrogateFunctionBase):
-    """
-    Sigmoid activation function with gradient
-    Overwrite sigmoid function in BrainCog
-    """
-
-    def __init__(self, alpha=4., requires_grad=False):
-        super().__init__(alpha=alpha, requires_grad=requires_grad)
-
-    @staticmethod
-    def act_fun(x, alpha):
-        return sigmoid.apply(x, alpha)
-
-
-class QGate_Grad(SurrogateFunctionBase):
-
-    def __init__(self, alpha=2., requires_grad=False):
-        super().__init__(alpha=alpha, requires_grad=requires_grad)
-
-    @staticmethod
-    def act_fun(x, alpha):
-        return quadratic_gate.apply(x, alpha)
 
 
 class BaseNode_Torch(BaseNode):
@@ -45,11 +23,13 @@ class BaseNode_Torch(BaseNode):
                  threshold=1.0,
                  step=10,
                  layer_by_layer=True,
-                 mem_detach=True):
+                 mem_detach=True,
+                 *args,**kwargs):
         super().__init__(threshold=threshold,
                          step=step,
                          layer_by_layer=layer_by_layer,
-                         mem_detach=mem_detach)
+                         mem_detach=mem_detach,
+                         *args, **kwargs)
 
     def rearrange2node(self, inputs):
         if self.groups != 1:
@@ -105,6 +85,30 @@ class BaseNode_Torch(BaseNode):
             outputs = inputs
         return outputs
 
+class IFNode(BaseNode_Torch):
+    """
+    Integrate and Fire Neuron(IFNode)
+    Re-implemented with BaseNode_Torch
+    """
+
+    def __init__(self, threshold=.5, act_fun=AtanGrad, *args, **kwargs):
+        """
+        :param threshold:
+        :param act_fun:
+        :param args:
+        :param kwargs:
+        """
+        super().__init__(threshold, *args, **kwargs)
+        if isinstance(act_fun, str):
+            act_fun = eval(act_fun)
+        self.act_fun = act_fun(alpha=2., requires_grad=False)
+
+    def integral(self, inputs):
+        self.mem = self.mem + inputs * self.dt
+
+    def calc_spike(self):
+        self.spike = self.act_fun(self.mem - self.get_thres())
+        self.mem = self.mem * (1 - self.spike.detach())
 
 class LIFNode(BaseNode_Torch):
     """
@@ -127,7 +131,8 @@ class LIFNode(BaseNode_Torch):
         super().__init__(threshold=threshold,
                          step=step,
                          layer_by_layer=layer_by_layer,
-                         mem_detach=mem_detach)
+                         mem_detach=mem_detach,
+                         *args,**kwargs)
         self.tau = tau
         if isinstance(act_fun, str):
             act_fun = eval(act_fun)
@@ -141,118 +146,9 @@ class LIFNode(BaseNode_Torch):
         self.mem = self.mem * (1 - self.spike.detach())
 
 
-# SpikingJelly Node
-# # for debugging
-class LIFNode_Spikingjelly(sj_LIFNode):
-
-    def __init__(self,
-                 step=4,
-                 threshold=1.,
-                 tau=2.,
-                 detach_reset=True,
-                 backend='torch',
-                 **kwargs):
-        super().__init__(v_threshold=threshold,
-                         tau=tau,
-                         detach_reset=detach_reset,
-                         v_reset=0.,
-                         surrogate_function=surrogate.Sigmoid())
-        # self.register_memory('v_seq', None)
-        self.step = step
-        self.backend = backend
-
-    def forward(self, x_seq: torch.Tensor):
-        assert x_seq.dim() > 1
-        x_shape = x_seq.shape
-
-        if self.backend == 'torch':
-            #方便debug 多封装一层
-            x_seq = x_seq.reshape(self.step, -1,
-                                  *x_shape[1:]).contiguous()  #适配braincog框架的输入
-
-            spike_seq = []
-            self.v_seq = []
-            for t in range(x_seq.shape[0]):
-                # print(self)
-                spike_seq.append(super().forward(x_seq[t]).unsqueeze(0))
-                self.v_seq.append(self.v.unsqueeze(0))
-
-            spike_seq = torch.cat(spike_seq, 0)
-            self.v_seq = torch.cat(self.v_seq, 0)
-
-            return spike_seq.flatten(0, 1)
-
-        else:
-            raise NotImplementedError(self.backend)
-
-
-# # for debugging
-class LIFNode_Spikingjelly_Cupy(sj_LIFNode):
-
-    def __init__(self,
-                 step=4,
-                 threshold=1.,
-                 tau=2.,
-                 detach_reset=True,
-                 backend='cupy',
-                 **kwargs):
-        super().__init__(v_threshold=threshold,
-                         tau=tau,
-                         detach_reset=detach_reset,
-                         v_reset=0.,
-                         surrogate_function=surrogate.Sigmoid())
-        self.register_memory('v_seq', None)
-        self.step = step
-        self.backend = backend
-
-    def forward(self, x_seq: torch.Tensor):
-        assert x_seq.dim() > 1
-        x_shape = x_seq.shape
-
-        if self.backend == 'cupy':
-            #方便debug 多封装一层
-            x_seq = x_seq.reshape(self.step, -1,
-                                  *x_shape[1:]).contiguous()  #适配braincog框架的输入
-
-            if isinstance(self.v, float):
-                v_init = self.v
-                self.v = torch.zeros_like(x_seq[0].data)
-                if v_init != 0.:
-                    torch.fill_(self.v, v_init)
-
-            spike_seq, self.v_seq = neuron_kernel.MultiStepLIFNodePTT.apply(
-                x_seq.flatten(1), self.v.flatten(0), self.decay_input,
-                self.tau, self.v_threshold, self.v_reset, self.detach_reset,
-                self.surrogate_function.cuda_code)
-
-            spike_seq = spike_seq.reshape(x_seq.shape)
-            self.v_seq = self.v_seq.reshape(x_seq.shape)
-
-            self.v = self.v_seq[-1].clone()
-
-            return spike_seq.flatten(0, 1)
-
-        else:
-            raise NotImplementedError(self.backend)
-
-
 class PLIFNode(BaseNode_Torch):
     """
-    Parametric LIF， 其中的 ```tau``` 会被backward过程影响
-    Reference：https://arxiv.org/abs/2007.05785
-    :param threshold: 神经元发放脉冲需要达到的阈值
-    :param v_reset: 静息电位
-    :param dt: 时间步长
-    :param step: 仿真步
-    :param tau: 膜电位时间常数, 用于控制膜电位衰减
-    :param act_fun: 使用surrogate gradient 对梯度进行近似, 默认为 ``surrogate.AtanGrad``
-    :param requires_thres_grad: 是否需要计算对于threshold的梯度, 默认为 ``False``
-    :param sigmoid_thres: 是否使用sigmoid约束threshold的范围搭到 [0, 1], 默认为 ``False``
-    :param requires_fp: 是否需要在推理过程中保存feature map, 需要消耗额外的内存和时间, 默认为 ``False``
-    :param layer_by_layer: 是否以一次性计算所有step的输出, 在网络模型较大的情况下, 一般会缩短单次推理的时间, 默认为 ``False``
-    :param n_groups: 在不同的时间步, 是否使用不同的权重, 默认为 ``1``, 即不分组
-    :param args: 其他的参数
-    :param kwargs: 其他的参数
+    Parametric LIF(PLIF Node) Re-implmented with BaseNode_Torch
     """
 
     def __init__(self,
@@ -267,7 +163,10 @@ class PLIFNode(BaseNode_Torch):
         super().__init__(threshold=threshold,
                          step=step,
                          layer_by_layer=layer_by_layer,
-                         mem_detach=mem_detach)
+                         mem_detach=mem_detach,
+                         *args,
+                         **kwargs
+                         )
         init_w = -math.log(tau - 1.)
         if isinstance(act_fun, str):
             act_fun = eval(act_fun)
@@ -282,6 +181,231 @@ class PLIFNode(BaseNode_Torch):
         self.spike = self.act_fun(self.mem - self.get_thres())
         self.mem = self.mem * (1 - self.spike.detach())
 
+
+class EIFNode(BaseNode_Torch):
+    """
+        a simplified EIFNode implemented with BrainCog
+        :param v_reset: in EIFNode, the reset
+    """
+    def __init__(self,
+                 threshold: float = 1.0,
+                 step = 4,
+                 tau = 2.,
+                 layer_by_layer = True,
+                 mem_detach=False,
+                 delta_T = 1.,
+                 theta_rh =.8,
+                 v_reset = -0.1, # defualt v_reset = -0.1
+                 act_fun=Sigmoid_Grad,
+                 *args, **kwargs):
+        super().__init__(threshold=threshold,
+                         step=step,
+                         layer_by_layer=layer_by_layer,
+                         mem_detach=mem_detach,
+                         *args,
+                         **kwargs
+                         )
+
+        if isinstance(act_fun, str):
+            act_fun = eval(act_fun)
+        self.act_fun = act_fun()
+
+        self.v_reset = v_reset
+        self.register_buffer('delta_T', torch.tensor(delta_T))
+        self.register_buffer('theta_rh', torch.tensor(theta_rh))
+        self.register_buffer('tau', torch.tensor(tau)) # register as tensor for torch.exp()
+
+    def integral(self, inputs):
+        # self.mem = self.mem + (inputs - self.mem) / self.tau
+        self.mem = self.mem + (inputs - self.mem + self.delta_T * torch.exp(
+            (self.mem - self.theta_rh) / self.delta_T)) / self.tau
+
+    def calc_spike(self):
+        self.spike = self.act_fun(self.mem - self.threshold)
+        self.mem = self.mem * (1 - self.spike.detach()) + self.spike.detach() * self.v_reset # v_reset is not zero
+
+
+
+heaviside_sigmoid = HeavisideSigmoid.apply
+heaviside_parametric_sigmoid = HeavisideParametricSigmoid.apply
+
+class HDLIFNode(BaseModule):
+    """
+        AKA MoE-IFNode of Spiking Point Transformer(SPT, AAAI 2025)
+    """
+    def __init__(self,
+                 input_dims,  # compulsory in HDLIFNode
+                 threshold = 0.5,
+                 step = 4,
+                 tau = 2.,
+                 layer_by_layer = True,
+                 mem_detach=False,
+                 act_fun=Sigmoid_Grad,
+                 *args, **kwargs):
+        super().__init__(step=step,encode_type='direct',layer_by_layer=layer_by_layer,
+                         *args,
+                         **kwargs
+                         )
+
+        if isinstance(act_fun, str):
+            act_fun = eval(act_fun)
+        self.act_fun = act_fun()
+        self.step = step
+        self.embed_dims = input_dims
+        self.tau = tau
+        self.threshold = threshold
+
+        # EIFNode param (fixed)
+        self.v_reset_EIF = -0.1
+        self.delta_T_EIF = 1.0
+        self.theta_rh_EIF= 0.8
+
+        # adding neurons
+        self.experts = nn.ModuleList([])
+        self.experts.append(IFNode(threshold=threshold, step=step, layer_by_layer=layer_by_layer,
+                                   act_fun=act_fun, mem_detach=mem_detach,requires_mem=True)) # IFNode
+        self.experts.append(LIFNode(threshold=threshold,step=step,layer_by_layer=layer_by_layer,tau=tau,
+                                    act_fun=act_fun,mem_detach=mem_detach,requires_mem=True)) # LIFNode
+        self.experts.append(PLIFNode(threshold=threshold,step=step,layer_by_layer=layer_by_layer,tau=tau,
+                                    act_fun=act_fun,mem_detach=mem_detach,requires_mem=True)) # PLIFNode
+        self.experts.append(EIFNode(threshold=threshold,step=step,layer_by_layer=layer_by_layer,tau=self.tau,
+                                    act_fun=act_fun,mem_detach=mem_detach,v_reset=self.v_reset_EIF,
+                                    delta_T=self.delta_T_EIF,theta_rh=self.theta_rh_EIF,requires_mem=True)) # EIFNode
+
+        self.k_MoE = 4
+        self.v_th_MoE = 0.2
+        self.gate_MoE = nn.Conv1d(self.embed_dims*self.step, len(self.experts), 1)
+
+    def forward(self, x):
+
+        H, W = None, None
+        transpose_flag = False
+
+        # TB C H W should be reshaped to TB C N for MoE op
+        if len(x.shape) == 4: # TB C H W -> TB C N
+            TB, C, H, W = x.shape
+            x = x.flatten(-2, -1)  # TB C M
+
+        # TB N C should be transposed to TB C N for MoE op
+        ## We assume C != N
+        if x.shape[1] != self.embed_dims:
+            x = x.transpose(-2, -1)
+            transpose_flag = True
+
+        if self.training:
+            z = x.view(-1, self.step, *x.shape[1:]).flatten(1, 2) # B TC N
+            gate = F.softmax(self.gate_MoE(z), dim=-2).repeat(self.step, 1, 1, 1) # T B E N
+            spikes = torch.stack([expert(x) for expert in self.experts], dim=1)  # TB E C N # fire
+            expert_outputs = torch.stack([torch.stack(expert.mem_collect, dim=0).flatten(0, 1)
+                                          for expert in self.experts], dim=1).view(
+                                          self.step, -1, len(self.experts),*x.shape[1:])  # T, B, E, C, N
+            expert_outputs[expert_outputs == 0.0] = self.threshold
+            output = torch.sum(gate.unsqueeze(3) * expert_outputs, dim=2)
+            output = heaviside_parametric_sigmoid(output, self.k_MoE, self.v_th_MoE)
+
+        else:
+            z = x.view(-1, self.step, *x.shape[1:]).flatten(1, 2)
+            gate = self.gate_MoE(z)
+            topk_values, topk_indices = torch.topk(gate, 2, dim=-2)
+
+            gate = torch.zeros_like(gate)
+            gate.scatter_(-2, topk_indices, topk_values)
+            gate_masked = gate.clone()
+            gate_masked[gate == 0] = float('-inf')
+            gate = F.softmax(gate_masked, dim=-2).repeat(self.step, 1, 1, 1)
+
+            expert_spikes = torch.stack([expert(x) for expert in self.experts], dim=1)
+            expert_outputs = torch.stack([torch.stack(expert.mem_collect,dim=0).flatten(0, 1)
+                                          for expert in self.experts], dim=1).view(
+                                          self.step, -1, len(self.experts),*x.shape[1:])
+            expert_outputs[expert_outputs == 0.0] = self.threshold
+            output = torch.sum(gate.unsqueeze(3) * expert_outputs, dim=2)
+            output = heaviside_parametric_sigmoid(output, self.k_MoE, self.v_th_MoE)
+
+        if H is None and W is None:
+            if not transpose_flag:
+               return output.flatten(0, 1) # TB C N
+            else:
+                return output.flatten(0, 1).transpose(-2, -1) #TB N C
+        else:
+            return output.flatten(0, 1).reshape(TB, C, H, W)
+
+
+class ILIFNode(BaseNode_Torch):
+    """
+    Integer LIFNode (ILIFNode)
+    """
+
+    def __init__(self,
+                 threshold=1.0,
+                 step=4,
+                 layer_by_layer=True,
+                 tau=2.,
+                 act_fun=Sigmoid_Grad,
+                 mem_detach=False,
+                 D = 2,
+                 *args,
+                 **kwargs):
+        super().__init__(threshold=threshold,
+                         step=step,
+                         layer_by_layer=layer_by_layer,
+                         mem_detach=mem_detach,
+                         *args,**kwargs)
+        self.tau = tau
+        if isinstance(act_fun, str):
+            act_fun = eval(act_fun)
+        self.act_fun = act_fun()
+        self.D = D
+
+    def integral(self, inputs):
+        self.mem = self.mem + (inputs - self.mem) / self.tau
+
+    def calc_spike(self):
+        # compute normalized potential
+        u = self.mem / self.threshold
+        u_clamped = torch.clamp(u, min=0, max=self.D)
+        spikes_hard = torch.round(u_clamped)
+        spikes = spikes_hard.detach() - u_clamped.detach() + u_clamped # for back propagation
+        self.spike = spikes
+        self.mem = self.mem - spikes_hard * self.threshold
+
+class NILIFNode(BaseNode_Torch):
+    """
+    Normlized Integer LIFNode (NILIFNode)
+    """
+
+    def __init__(self,
+                 threshold=1.0,
+                 step=4,
+                 layer_by_layer=True,
+                 tau=2.,
+                 act_fun=Sigmoid_Grad,
+                 mem_detach=False,
+                 D = 2,
+                 *args,
+                 **kwargs):
+        super().__init__(threshold=threshold,
+                         step=step,
+                         layer_by_layer=layer_by_layer,
+                         mem_detach=mem_detach,
+                         *args,**kwargs)
+        self.tau = tau
+        if isinstance(act_fun, str):
+            act_fun = eval(act_fun)
+        self.act_fun = act_fun()
+        self.D = D
+
+    def integral(self, inputs):
+        self.mem = self.mem + (inputs - self.mem) / self.tau
+
+    def calc_spike(self):
+        # compute normalized potential
+        u = self.mem / self.threshold
+        u_clamped = torch.clamp(u, min=0, max=self.D) / self.D
+        spikes_hard = torch.round(u_clamped)
+        spikes = spikes_hard.detach() - u_clamped.detach() + u_clamped # for back propagation
+        self.spike = spikes
+        self.mem = self.mem - spikes_hard * self.threshold
 
 class PSNTorch(nn.Module):
     """
@@ -317,36 +441,6 @@ class PSNTorch(nn.Module):
         spike = self.act_func(h_seq)
         return spike.view(x_seq.shape)
 
-
-class SpikeAct_extended(torch.autograd.Function):
-    '''
-    GLIF act function
-    solving the non-differentiable term of the Heavisde function
-    '''
-
-    @staticmethod
-    def forward(ctx, input):
-        ctx.save_for_backward(input)
-        # if input = u > Vth then output = 1
-        output = torch.gt(input, 0.)
-        return output.float()
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        input = ctx.saved_tensors[0]
-        grad_input = grad_output.clone()
-
-        # hu is an approximate func of df/du in linear formulation
-        hu = abs(input) < 0.5
-        hu = hu.float()
-
-        # arctan surrogate function
-        # hu =  1 / ((input * torch.pi) ** 2 + 1)
-
-        # triangles
-        # hu = (1 / gamma_SG) * (1 / gamma_SG) * ((gamma_SG - input.abs()).clamp(min=0))
-
-        return grad_input * hu
 
 
 class GLIFTorch(nn.Module):
@@ -530,46 +624,6 @@ class KLIFNode(BaseNode_Torch):
         self.mem = self.mem * (1 - self.spike.detach())
 
 
-class rectangle(torch.autograd.Function):
-    """
-    CLIF act func
-    """
-
-    @staticmethod
-    def forward(ctx, x, vth):
-        if x.requires_grad:
-            ctx.save_for_backward(x)
-            ctx.vth = vth
-        return heaviside(x)
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        grad_x = None
-        if ctx.needs_input_grad[0]:
-            x = ctx.saved_tensors[0]
-            mask1 = (x.abs() > ctx.vth / 2)
-            mask_ = mask1.logical_not()
-            grad_x = grad_output * x.masked_fill(
-                mask_, 1. / ctx.vth).masked_fill(mask1, 0.)
-        return grad_x, None
-
-
-class Rectangle(SurrogateFunctionBase):
-    """
-    CLIF act func class
-    """
-
-    def __init__(self, alpha=1.0, spiking=True):
-        super().__init__(alpha, spiking)
-
-    @staticmethod
-    def spiking_function(x, alpha):
-        return rectangle.apply(x, alpha)
-
-    @staticmethod
-    def primitive_function(x: torch.Tensor, alpha):
-        return torch.min(torch.max(1. / alpha * x, 0.5), -0.5)
-
 
 class ComplementaryLIFNeuron(nn.Module):
     """
@@ -678,3 +732,77 @@ class ComplementaryLIFNeuron(nn.Module):
             self.v = 0.0
 
         self.m = 0  # Complementary memory
+
+
+
+
+# SpikingJelly Node
+# # for debugging
+class LIFNode_Spikingjelly(sj_LIFNode):
+
+    def __init__(self,
+                 step=4,
+                 threshold=1.,
+                 tau=2.,
+                 detach_reset=True,
+                 backend='torch',
+                 **kwargs):
+        super().__init__(v_threshold=threshold,
+                         tau=tau,
+                         detach_reset=detach_reset,
+                         v_reset=0.,
+                         surrogate_function=surrogate.Sigmoid())
+        # self.register_memory('v_seq', None)
+        self.step = step
+        self.backend = backend
+
+    def forward(self, x_seq: torch.Tensor):
+        assert x_seq.dim() > 1
+        x_shape = x_seq.shape
+
+        if self.backend == 'torch':
+            #方便debug 多封装一层
+            x_seq = x_seq.reshape(self.step, -1,
+                                  *x_shape[1:]).contiguous()  #适配braincog框架的输入
+
+            spike_seq = []
+            self.v_seq = []
+            for t in range(x_seq.shape[0]):
+                # print(self)
+                spike_seq.append(super().forward(x_seq[t]).unsqueeze(0))
+                self.v_seq.append(self.v.unsqueeze(0))
+
+            spike_seq = torch.cat(spike_seq, 0)
+            self.v_seq = torch.cat(self.v_seq, 0)
+
+            return spike_seq.flatten(0, 1)
+
+        else:
+            raise NotImplementedError(self.backend)
+
+'''
+   move to surrogate.py
+'''
+
+# class Sigmoid_Grad(SurrogateFunctionBase):
+#     """
+#     Sigmoid activation function with gradient
+#     Overwrite sigmoid function in BrainCog
+#     """
+#
+#     def __init__(self, alpha=4., requires_grad=False):
+#         super().__init__(alpha=alpha, requires_grad=requires_grad)
+#
+#     @staticmethod
+#     def act_fun(x, alpha):
+#         return sigmoid.apply(x, alpha)
+#
+#
+# class QGate_Grad(SurrogateFunctionBase):
+#
+#     def __init__(self, alpha=2., requires_grad=False):
+#         super().__init__(alpha=alpha, requires_grad=requires_grad)
+#
+#     @staticmethod
+#     def act_fun(x, alpha):
+#         return quadratic_gate.apply(x, alpha)

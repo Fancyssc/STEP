@@ -335,7 +335,6 @@ class Spikformer(BaseModule):
         self.reset()
         if len(x.shape) == 4:
             x = self.encoder(x)
-
             # sequence datasets
         else:
             x = (x.unsqueeze(0)).repeat(self.T, 1, 1, 1).flatten(0, 1)
