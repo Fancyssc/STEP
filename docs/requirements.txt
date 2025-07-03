@@ -1,3 +1,7 @@
+# docs/requirements.txt
+sphinx>=6.0
+sphinx-rtd-theme
+myst-parser
 # requirements.txt for SpikingTransformerBenchmark
 absl-py==2.1.0
 audioread==3.0.1
