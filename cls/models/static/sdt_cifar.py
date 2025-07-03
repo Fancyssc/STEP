@@ -9,10 +9,11 @@ from .spikformer_cifar import BNAndPadLayer
 
 import torch.nn as nn
 
-# # 本地调用包出错是时可以解注释如下代码
-# from cls.utils.layers import *
-# from cls.utils.node import *
-#
+'''
+    Spike-Driven Transformer, NeurIPS 2023
+    https://proceedings.neurips.cc/paper_files/paper/2023/hash/ca0f5358dbadda74b3049711887e9ead-Abstract-Conference.html
+'''
+
 
 """
 Spike-driven Transformer v1 (NeurIPS 2023)

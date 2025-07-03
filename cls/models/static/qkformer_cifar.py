@@ -9,6 +9,11 @@ from braincog.base.strategy.surrogate import *
 import torch.nn as nn
 import torch
 
+'''
+    QKFormer, NeurIPS 2024
+    https://arxiv.org/abs/2403.16552
+'''
+
 class Token_QK_Attention(BaseModule):
     def __init__(self, embed_dim, step=4,encode_type='direct',num_heads=12,attn_drop=0.,node=LIFNode, tau=2.0, threshold=1.0, act_func=SigmoidGrad, alpha=4.0,layer_by_layer=True):
         super().__init__(step=step,encode_type=encode_type,layer_by_layer=layer_by_layer)

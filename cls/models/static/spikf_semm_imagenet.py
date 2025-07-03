@@ -14,6 +14,11 @@ from braincog.model_zoo.base_module import BaseModule
 __all__ = ["spikformer"]
 
 
+"""
+    Spiking Transformer with Experts Mixture, NeurIPS 2024
+    https://proceedings.neurips.cc/paper_files/paper/2024/hash/137101016144540ed3191dc2b02f09a5-Abstract-Conference.html
+"""
+
 class MLP(BaseModule):
     def __init__(
         self,

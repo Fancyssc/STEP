@@ -15,7 +15,8 @@ from torch.onnx.symbolic_opset9 import detach
 #
 
 """
-Spikingformer (Arxiv)
+Spikingformer, Arxiv
+https://arxiv.org/abs/2304.11954
 """
 
 class SPS(BaseModule):

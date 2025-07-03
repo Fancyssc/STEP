@@ -13,6 +13,11 @@ from timm.models import register_model
 from types import SimpleNamespace
 from ..utils.node import *
 
+
+'''
+    Spiking Point Transformer, AAAI 2025
+    https://ojs.aaai.org/index.php/AAAI/article/view/35459
+'''
 class TransitionDown(nn.Module):
     def __init__(self, k, nneighbor, channels, timestep, spike_mode, use_encoder):
         super().__init__()

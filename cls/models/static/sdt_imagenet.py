@@ -12,9 +12,11 @@ import torch.nn as nn
 # from cls.utils.node import *
 #
 
-"""
-Spike-driven Transformer v1 (NeurIPS 2023)
-"""
+'''
+    Spike-Driven Transformer, NeurIPS 2023
+    https://proceedings.neurips.cc/paper_files/paper/2023/hash/ca0f5358dbadda74b3049711887e9ead-Abstract-Conference.html
+'''
+
 class SPS(BaseModule):
     """
     :param: node: The neuron model used in the Spiking Transformer. The structure of node should obey BaseNode in Braincog

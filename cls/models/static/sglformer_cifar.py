@@ -7,7 +7,8 @@ from ..utils.node import *
 from braincog.base.strategy.surrogate import *
 
 """
-SGLFormer (Frontiers in Neuroscience 2024)
+    SGLFormer, Frontiers in Neuroscience
+    https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2024.1371290/full
 """
 
 class MLP(BaseModule):

@@ -8,7 +8,8 @@ from .spikformer_cifar import BNAndPadLayer
 
 import torch.nn as nn
 """
-Spiking Transformer with Experts Mixture (NeurIPS 2024)
+    Spiking Transformer with Experts Mixture, NeurIPS 2024
+    https://proceedings.neurips.cc/paper_files/paper/2024/hash/137101016144540ed3191dc2b02f09a5-Abstract-Conference.html
 """
 
 class MLP(BaseModule):

@@ -6,7 +6,8 @@ from timm.models.layers import trunc_normal_
 from timm.models.vision_transformer import _cfg
 from braincog.base.strategy.surrogate import *
 """
-    Spiking Wavelet Transformer (ECCV 2024)
+    Spiking Wavelet Transformer, ECCV 2024
+    https://link.springer.com/chapter/10.1007/978-3-031-73116-7_2
 """
 class SPS(BaseModule):
     """

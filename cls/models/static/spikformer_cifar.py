@@ -10,8 +10,8 @@ import torch.nn as nn
 
 
 """
-Spikformer version 1 (ICLR2023)
-
+Spikformer, ICLR2023
+https://arxiv.org/abs/2209.15425
 """
 class SPS(BaseModule):
     """

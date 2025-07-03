@@ -3,6 +3,10 @@ from ..utils.node import *
 from typing import Any, List, Mapping
 from timm.models.registry import register_model
 
+'''
+    Spikingresformer, CVPR 2024
+    https://openaccess.thecvf.com/content/CVPR2024/html/Shi_SpikingResformer_Bridging_ResNet_and_Vision_Transformer_in_Spiking_Neural_Networks_CVPR_2024_paper.html
+'''
 
 class GWFFN(BaseModule):
     def __init__(self, step=4, encode_type='direct', in_channels=3,num_conv=1,group_size=64, ratio=4,

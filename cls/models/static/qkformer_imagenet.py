@@ -18,6 +18,10 @@ __all__ = [
     "QKFormer_10_512",
 ]
 
+'''
+    QKFormer, NeurIPS 2024
+    https://arxiv.org/abs/2403.16552
+'''
 
 def compute_non_zero_rate(x):
     x_shape = torch.tensor(list(x.shape))
