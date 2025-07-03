@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.8%20%7C%203.9%20|%203.10-blue" alt="python"/>
   <img src="https://img.shields.io/badge/framework-BrainCog-blue" alt="Braincog"/>
-  <img src="https://img.shields.io/badge/version-1.0.0-green" alt="Version"/>
+  <img src="https://img.shields.io/badge/version-1.1.0-green" alt="Version"/>
   <img src="https://img.shields.io/badge/-continuous_integration-red" alt="Contiguous"/>
 </p>
 
@@ -45,6 +45,24 @@ python train.py --config configs/spikformer/cifar10.yml
 
 [//]: # (- **End-to-End Reproducibility** – Version-locked configs and CI scripts guarantee “one-command” reruns.  )
 
+## 📂 DeepDive Guides
+For specific tasks, completed models and supported datasets, please refer to the corresponding submodule guides:
+- [Classification(Cls)](./cls/README.md)  
+- [Segmentation(Seg)](./seg/README.md)  
+- [Detection(Det)](./det/README.md)
+```plaintext
+Spiking-Transformer-Benchmark/
+├── cls/               # Classification submodule
+│   ├── README.md      
+│   └── ...
+├── seg/               # Segmentation submodule 
+│   ├── README.md      
+│   └── ...
+├── det/               # Object detection submodule 
+│   ├── README.md      
+│   └── ...
+└── README.md          
+```
 
 ## 🔑 Key Features of STEP
 
@@ -58,30 +76,12 @@ One-stop benchmark for Spiking-Transformer research—classification, segmentati
 - **Task adapters integrate with MMSeg and MMDet**, so dense prediction experiments need only a config tweak.
 - **Backend-agnostic code** runs on SpikingJelly, BrainCog, or BrainPy, and every config is version-locked for full reproducibility. neuromorphic vision systems.
 
+## Resources
+### Tutorial
 
-## 📂 DeepDive Guides
-- [Classification(Cls)](./cls/README.md)  
-- [Segmentation(Seg)](./seg/README.md)  
-- [Detection(Det)](./det/README.md)
-```plaintext
-Spiking-Transformer-Benchmark/
-├── cls/               # Classification submodule
-│   ├── README.md      
-│   ├── configs/     
-│   ├── datasets/      
-│   └── ...
-├── seg/               # Segmentation submodule 
-│   ├── README.md      
-│   ├── configs/       
-│   ├── mmseg      
-│   └── ...
-├── det/               # Object detection submodule 
-│   ├── README.md      
-│   ├── configs/       
-│   ├── mmdet      
-│   └── ...
-└── README.md          
-```
+### Checkpoints
+The main experimental results, including the corresponding log files, configuration files, and checkpoints, can be downloaded [here](https://huggingface.co/Fancysean/STEP).
+
 
 ## 📝Citation
 ```angular2html
@@ -96,5 +96,18 @@ Spiking-Transformer-Benchmark/
 }
 ```
 
+## 📦 Version & Changelog
+### [1.1.0] – 2025-07-03
+#### Added
+- Support for **3D cloud point classification**.
+- Some known bugs fixed.
+
+### [1.0.0] – 2025-5-18
+#### Added
+- initial version released.
+
+
 ## 💡Acknowledgement
 Thanks to the [BrainCog](https://github.com/BrainCog-X/Brain-Cog) for providing the core ideas and components for this repository.
+
+A full list of contributors can be found [here](https://github.com/Fancyssc/STEP/graphs/contributors).
