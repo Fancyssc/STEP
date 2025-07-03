@@ -1,4 +1,4 @@
-site_name: STEP-Tutorial
+site_name: STETutorial
 docs_dir: docs          # 文档源文件目录
 site_dir: site          # 构建后输出到 site/
 nav:                     # 侧边栏结构
