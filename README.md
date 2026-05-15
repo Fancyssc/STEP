@@ -1,4 +1,4 @@
-# STEP: A Unified Spiking Transformer Evaluation Platform for Fair and Reproducible Benchmarking [ [NeurIPS 2025]](https://arxiv.org/abs/2505.11151)
+# STEP: A Unified Spiking Transformer Evaluation Platform for Fair and Reproducible Benchmarking ([NeurIPS 2025](https://proceedings.neurips.cc/paper_files/paper/2025/hash/e9fece10c0f4ffdcf015ab676f370fbd-Abstract-Datasets_and_Benchmarks_Track.html))
 
 <p align="center">
   <img src="/imgs/STEP.jpg" alt="mp" style="width: 40%; max-width: 600px; min-width: 200px;" />
