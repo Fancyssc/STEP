@@ -127,6 +127,13 @@ When working with static datasets, SNNs typically require encoding of static ima
 ```
 
 ## 📦 Version & Changelog
+
+### [2.0.0] – 2025-07-08
+#### New Version
+- STEP version 2 now can be found at [here](https://github.com/Fancyssc/STEPv2)
+
+
+
 ### [1.1.0] – 2025-07-03
 #### Added
 - Support for **3D cloud point classification**.
